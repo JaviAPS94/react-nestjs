@@ -1,0 +1,9 @@
+const transformerData = {
+    transformationRatio: 'string',
+    ratedPower: 'string',
+    primaryVoltage: 'string',
+    secondaryVoltage: 'string',
+    ratedCurrent: 'string',
+    frequency: 'string',
+    efficiency: 'string'
+    };

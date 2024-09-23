@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 
-export class Test1726012231585 implements Seeder {
+export class TypeAndFieldsTest1727104281298 implements Seeder {
   track = false;
 
   public async run(
