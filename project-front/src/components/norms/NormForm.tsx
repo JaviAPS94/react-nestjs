@@ -98,8 +98,11 @@ const NormForm = ({
           onChange={handleChange}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
         >
+          <option value="" disabled>
+            Selecciona un país
+          </option>
           {countries?.map((country) => (
-            <option key={country.id} value={country.name}>
+            <option key={country.id} value={country.id}>
               {country.name}
             </option>
           ))}

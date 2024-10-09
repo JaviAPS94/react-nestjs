@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import NormForm from "../components/norms/NormForm";
 import { useGetCountriesQuery, useGetTypesWithFieldsQuery } from "../store";
 import NormInformation from "../components/norms/NormInformation";
+import Alert from "../components/core/Alert";
+import { useGetElementsByFiltersQuery } from "../store/apis/elementApi";
+import DataTable from "../components/norms/DataTable";
 
 export interface ElementValue {
   name: string;
@@ -41,14 +44,23 @@ const NewNormPage = () => {
     isLoading: isLoadingTypes,
   } = useGetTypesWithFieldsQuery(null);
 
+  const {
+    data: elementsByFilters,
+    error: errorElementsByFilters,
+    isLoading: isLoadingElementsByFilters,
+  } = useGetElementsByFiltersQuery({
+    country: Number(formData.country),
+    name: formData.name,
+  });
+
   const [showErrorAlert, setShowErrorAlert] = useState(false);
 
   useEffect(() => {
-    if (errorCountries || errorTypes) {
+    if (errorCountries || errorTypes || errorElementsByFilters) {
       setShowErrorAlert(true);
       setTimeout(() => setShowErrorAlert(false), 3000); // Hide after 3 seconds
     }
-  }, [errorCountries, errorTypes]);
+  }, [errorCountries, errorTypes, errorElementsByFilters]);
 
   if (isLoadingCountries) {
     return <div>Loading countries...</div>;
@@ -58,6 +70,10 @@ const NewNormPage = () => {
     return <div>Loading types...</div>;
   }
 
+  if (isLoadingElementsByFilters) {
+    return <div>Loading elements by filters...</div>;
+  }
+
   return (
     <div>
       <h1 className="font-bold text-2xl my-10 text-center">
@@ -65,23 +81,25 @@ const NewNormPage = () => {
       </h1>
       <div className="mx-10">
         <div className="flex h-screen">
-          <div className="w-1/2 p-8 overflow-auto">
+          <div className="w-4/6 p-8 overflow-auto">
             <NormForm
               countries={countries}
               types={types}
               formData={formData}
               setFormData={setFormData}
             />
+            <h2 className="mt-5 font-bold text-xl">
+              Elementos que podrías cargar
+            </h2>
+            <DataTable data={elementsByFilters ?? []} />
           </div>
-          <div className="w-1/2 p-8 bg-white overflow-auto">
+          <div className="w-2/6 p-8 bg-white overflow-auto">
             <NormInformation formData={formData} setFormData={setFormData} />
           </div>
         </div>
       </div>
       {showErrorAlert && (
-        <div className="fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg">
-          Error loading countries!
-        </div>
+        <Alert message="Ha ocurrido un error al cargar los datos" error />
       )}
     </div>
   );
