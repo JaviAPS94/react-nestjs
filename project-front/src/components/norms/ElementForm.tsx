@@ -1,40 +1,66 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "react-modal";
-
-interface Field {
-  name: string;
-  value: string | File;
-  type: string;
-}
+import { ElementField } from "../../commons/types";
+import { toCamelCase } from "../../commons/functions";
+import { ElementValue, NormElement } from "../../pages/NewNormPage";
 
 interface FormData {
-  name: string;
-  description: string;
-  price: number;
-  customFields: Field[];
+  customFields: ElementValue[];
 }
 
-const ElementForm = () => {
+interface ElementFormProps {
+  baseFields: ElementField | undefined;
+  handleAddElementToNorm: (element: NormElement) => void;
+}
+
+const ElementForm = ({
+  baseFields,
+  handleAddElementToNorm,
+}: ElementFormProps) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [newField, setNewField] = useState<Omit<Field, "value">>({
+  const [newField, setNewField] = useState<Omit<ElementValue, "value">>({
     name: "",
     type: "text",
+    key: "",
   });
-  const openModal = () => setModalIsOpen(true);
-  const closeModal = () => setModalIsOpen(false);
   const [formData, setFormData] = useState<FormData>({
-    name: "",
-    description: "",
-    price: 0,
     customFields: [],
   });
+
+  useEffect(() => {
+    const initializeCustomFields = () => {
+      const base = baseFields?.base;
+      const customFields = base
+        ? Object.entries(base).map(([key, value]) => ({
+            key,
+            name: value.label,
+            value: value.value,
+            type: value.type,
+          }))
+        : [];
+
+      setFormData((prevData) => ({
+        ...prevData,
+        customFields,
+      }));
+    };
+
+    initializeCustomFields();
+  }, []); // Empty dependency array ensures this runs once on mount
+
+  const openModal = () => setModalIsOpen(true);
+  const closeModal = () => setModalIsOpen(false);
 
   const handleAddField = () => {
     if (newField.name && newField.type) {
       setFormData((prevData) => ({
         ...prevData,
-        customFields: [...prevData.customFields, { ...newField, value: "" }],
+        customFields: [
+          ...prevData.customFields,
+          { ...newField, value: "", key: toCamelCase(newField.name) },
+        ],
       }));
+      setNewField({ name: "", type: "text", key: "" });
       closeModal();
     }
   };
@@ -58,10 +84,17 @@ const ElementForm = () => {
     }
   };
 
+  const handleInsertElement = () => {
+    const element: NormElement = {
+      values: formData.customFields,
+    };
+    handleAddElementToNorm(element);
+  };
+
   return (
-    <div>
+    <div className="mt-10">
       <div className="flex justify-between items-center">
-        <h3>Datos del elemento</h3>
+        <h2 className="text-xl font-bold">Información del elemento</h2>
         <button
           type="button"
           onClick={openModal}
@@ -71,38 +104,47 @@ const ElementForm = () => {
         </button>
       </div>
 
-      {formData.customFields.map((field, index) => (
-        <div key={index}>
-          <label className="block text-sm font-medium text-gray-700">
-            {field.name}
-          </label>
-          {field.type === "file" ? (
-            <input
-              type="file"
-              name="value"
-              onChange={(e) => handleChange(e, index)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
-            />
-          ) : field.type === "date" ? (
-            <input
-              type="date"
-              name="value"
-              value={typeof field.value === "string" ? field.value : ""}
-              onChange={(e) => handleChange(e, index)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
-            />
-          ) : (
-            <input
-              type={field.type}
-              name="value"
-              placeholder="Field Value"
-              value={typeof field.value === "string" ? field.value : ""}
-              onChange={(e) => handleChange(e, index)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
-            />
-          )}
-        </div>
-      ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {formData.customFields.map((field, index) => (
+          <div key={index} className="col-span-1">
+            <label className="block font-medium">{field.name}</label>
+            {field.type === "file" ? (
+              <input
+                type="file"
+                name="value"
+                onChange={(e) => handleChange(e, index)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 my-5"
+              />
+            ) : field.type === "date" ? (
+              <input
+                type="date"
+                name="value"
+                value={typeof field.value === "string" ? field.value : ""}
+                onChange={(e) => handleChange(e, index)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 my-5"
+              />
+            ) : (
+              <input
+                type={field.type}
+                name="value"
+                placeholder="Ingrese un valor"
+                value={typeof field.value === "string" ? field.value : ""}
+                onChange={(e) => handleChange(e, index)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 my-5"
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={handleInsertElement}
+        className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md"
+      >
+        Insertar elemento a la norma
+      </button>
+
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={closeModal}

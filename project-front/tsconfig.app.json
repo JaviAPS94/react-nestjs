@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "typeRoots": ["node_modules/@types"],
+    "types": ["react", "node", "react-modal"],
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],

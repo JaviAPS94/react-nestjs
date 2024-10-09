@@ -7,6 +7,7 @@ export class Country1725393025456 implements Seeder {
 
   public async run(dataSource: DataSource): Promise<any> {
     const repository = dataSource.getRepository(Country);
+    await repository.delete({});
     await repository.insert([
       {
         name: 'Colombia',
