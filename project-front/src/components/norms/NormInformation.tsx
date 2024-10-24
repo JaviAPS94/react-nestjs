@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NormData } from "../../pages/NewNormPage";
+import Button from "../core/Button";
+import { useSaveNormMutation } from "../../store";
+import Alert from "../core/Alert";
 
 interface NormInformationProps {
   formData: NormData;
@@ -8,6 +11,28 @@ interface NormInformationProps {
 
 const NormInformation = ({ formData, setFormData }: NormInformationProps) => {
   const [expandedElements, setExpandedElements] = useState<number[]>([]);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+
+  const [saveNorm, saveNormResult] = useSaveNormMutation();
+
+  useEffect(() => {
+    if (saveNormResult.isSuccess) {
+      setShowSuccessAlert(true);
+      setTimeout(() => setShowSuccessAlert(false), 3000);
+      setFormData({
+        name: "",
+        version: "",
+        country: "",
+        elements: [],
+      });
+    }
+
+    if (saveNormResult.isError) {
+      setShowErrorAlert(true);
+      setTimeout(() => setShowErrorAlert(false), 3000);
+    }
+  }, [saveNormResult]);
 
   const toggleElement = (index: number) => {
     setExpandedElements((prev) =>
@@ -20,6 +45,10 @@ const NormInformation = ({ formData, setFormData }: NormInformationProps) => {
       ...prevData,
       elements: prevData.elements.filter((_, i) => i !== index),
     }));
+  };
+
+  const handleSaveNorm = () => {
+    saveNorm(formData);
   };
 
   return (
@@ -36,9 +65,6 @@ const NormInformation = ({ formData, setFormData }: NormInformationProps) => {
             </p>
             <p>
               <span className="font-medium">Versión:</span> {formData.version}
-            </p>
-            <p>
-              <span className="font-medium">País:</span> {formData.country}
             </p>
           </div>
           {formData.elements.length > 0 && (
@@ -88,10 +114,21 @@ const NormInformation = ({ formData, setFormData }: NormInformationProps) => {
                   )}
                 </div>
               ))}
+              <Button
+                primary
+                loading={saveNormResult.isLoading}
+                onClick={handleSaveNorm}
+              >
+                Guardar Norma
+              </Button>
             </div>
           )}
         </div>
       </div>
+      {showErrorAlert && <Alert error message="Error guardando la norma!" />}
+      {showSuccessAlert && (
+        <Alert success message="Norma guardada exitosamente!" />
+      )}
     </div>
   );
 };

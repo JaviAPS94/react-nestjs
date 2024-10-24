@@ -4,6 +4,6 @@ import { NormService } from './norm.service';
 
 @Module({
   controllers: [NormController],
-  providers: [NormService]
+  providers: [NormService],
 })
 export class NormModule {}
