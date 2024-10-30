@@ -47,8 +47,45 @@ const NormInformation = ({ formData, setFormData }: NormInformationProps) => {
     }));
   };
 
+  const objectToFormData = (data: NormData): FormData => {
+    const formData = new FormData();
+
+    // Append top-level fields
+    formData.append("name", data.name);
+    formData.append("version", data.version);
+    formData.append("country", data.country);
+
+    // Append elements
+    data.elements.forEach((element, elementIndex) => {
+      formData.append(
+        `elements[${elementIndex}].type`,
+        element.type?.toString() || ""
+      );
+
+      element.values.forEach((value, valueIndex) => {
+        // Use the nested structure as specified
+        const formattedKey = `elements[${elementIndex}].values[${valueIndex}]`;
+
+        // Append the properties of the value
+        formData.append(`${formattedKey}.key`, value.key);
+        formData.append(`${formattedKey}.name`, value.name);
+        formData.append(`${formattedKey}.type`, value.type);
+
+        // Append the value based on its type
+        if (value.type === "file" && value.value instanceof File) {
+          formData.append(`${formattedKey}.value`, value.value); // Append the File
+        } else {
+          formData.append(`${formattedKey}.value`, value.value); // Append string value
+        }
+      });
+    });
+
+    return formData;
+  };
+
   const handleSaveNorm = () => {
-    saveNorm(formData);
+    const formaDataTransformed = objectToFormData(formData);
+    saveNorm(formaDataTransformed);
   };
 
   return (

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import Modal from "react-modal";
-import { ElementField } from "../../commons/types";
 import { toCamelCase } from "../../commons/functions";
 import { ElementValue, NormElement } from "../../pages/NewNormPage";
 
@@ -9,12 +8,13 @@ interface FormData {
 }
 
 interface ElementFormProps {
-  baseFields: ElementField | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  baseFieldsValue: Record<string, Record<string, any>>;
   handleAddElementToNorm: (element: NormElement) => void;
 }
 
 const ElementForm = ({
-  baseFields,
+  baseFieldsValue,
   handleAddElementToNorm,
 }: ElementFormProps) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -29,7 +29,7 @@ const ElementForm = ({
 
   useEffect(() => {
     const initializeCustomFields = () => {
-      const base = baseFields?.base;
+      const base = baseFieldsValue;
       const customFields = base
         ? Object.entries(base).map(([key, value]) => ({
             key,
@@ -46,7 +46,7 @@ const ElementForm = ({
     };
 
     initializeCustomFields();
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, [baseFieldsValue]); // Empty dependency array ensures this runs once on mount
 
   const openModal = () => setModalIsOpen(true);
   const closeModal = () => setModalIsOpen(false);

@@ -4,7 +4,6 @@ import { useGetCountriesQuery, useGetTypesWithFieldsQuery } from "../store";
 import NormInformation from "../components/norms/NormInformation";
 import Alert from "../components/core/Alert";
 import { useGetElementsByFiltersQuery } from "../store/apis/elementApi";
-import DataTable from "../components/norms/DataTable";
 
 export interface ElementValue {
   name: string;
@@ -87,11 +86,8 @@ const NewNormPage = () => {
               types={types}
               formData={formData}
               setFormData={setFormData}
+              elementsByFilters={elementsByFilters}
             />
-            <h2 className="mt-5 font-bold text-xl">
-              Elementos que podrías cargar
-            </h2>
-            <DataTable data={elementsByFilters ?? []} />
           </div>
           <div className="w-2/6 p-8 bg-white overflow-auto">
             <NormInformation formData={formData} setFormData={setFormData} />
