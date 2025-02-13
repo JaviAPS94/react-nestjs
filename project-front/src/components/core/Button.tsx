@@ -8,9 +8,11 @@ export interface ButtonProps
   success?: boolean;
   warning?: boolean;
   danger?: boolean;
+  cancel?: boolean;
   rounded?: boolean;
   loading?: boolean;
   disabled?: boolean;
+  icon?: React.ReactElement;
 }
 
 const Button = ({
@@ -19,9 +21,11 @@ const Button = ({
   success,
   warning,
   danger,
+  cancel,
   rounded,
   loading,
   disabled,
+  icon,
   ...rest
 }: ButtonProps) => {
   const classes = className(
@@ -32,6 +36,7 @@ const Button = ({
       "bg-blue-500 hover:bg-blue-600 text-white": primary,
       "border-green-500 bg-green-500 hover:bg-green-600 text-white": success,
       "border-yellow-400 bg-yellow-400 hover:bg-yellow-500 text-white": warning,
+      "border-gray-400 bg-gray-400 hover:bg-gray-500 text-white": cancel,
       "border-red-500 bg-red-500 hover:bg-red-600 text-white": danger,
       "rounded-full": rounded,
     }
@@ -39,7 +44,14 @@ const Button = ({
 
   return (
     <button {...rest} disabled={loading || disabled} className={classes}>
-      {loading ? <GoSync className="animate-spin" /> : children}
+      {loading ? (
+        <GoSync className="animate-spin" />
+      ) : (
+        <>
+          {icon && <span className="mr-2">{icon}</span>}
+          {children}
+        </>
+      )}
     </button>
   );
 };

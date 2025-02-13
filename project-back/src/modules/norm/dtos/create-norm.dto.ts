@@ -51,5 +51,15 @@ export class ElementDto {
     required: true,
   })
   @IsNotEmpty()
-  type: number;
+  subType: number;
+  @ApiProperty({
+    example: 1,
+    required: true,
+  })
+  specialItem: number;
+  @ApiProperty({
+    example: '3-1000-13200-220-PR-Dyn5-ANSI-EC-P1',
+    required: true,
+  })
+  sapReference: string;
 }

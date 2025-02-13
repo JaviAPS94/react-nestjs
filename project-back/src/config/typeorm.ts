@@ -19,7 +19,7 @@ const config = {
     encrypt: false,
     trustServerCertificate: true,
   },
-  seeds: ['dist/db/seeds/*{.ts,.js}'],
+  seeds: ['dist/db/seeds/1726447012144-types-and-field{.ts,.js}'],
 };
 
 export default registerAs('typeorm', () => config);

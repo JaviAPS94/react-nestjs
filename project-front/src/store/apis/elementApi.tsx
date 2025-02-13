@@ -1,5 +1,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { ElementResponse, GetElementsParams } from "../../commons/types";
+import {
+  ElementResponse,
+  GetElementsParams,
+  SpecialItem,
+} from "../../commons/types";
 
 const elementApi = createApi({
   reducerPath: "elementApi",
@@ -13,8 +17,15 @@ const elementApi = createApi({
         method: "GET",
       }),
     }),
+    getSpecialItems: builder.query<SpecialItem[], null>({
+      query: () => ({
+        url: "/element/special-items",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
-export const { useGetElementsByFiltersQuery } = elementApi;
+export const { useGetElementsByFiltersQuery, useGetSpecialItemsQuery } =
+  elementApi;
 export { elementApi };

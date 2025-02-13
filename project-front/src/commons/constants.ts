@@ -1,0 +1,1 @@
+export const INVENTARY_TYPE_DEFAULT = "INV1405";

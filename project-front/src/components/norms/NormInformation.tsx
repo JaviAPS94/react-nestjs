@@ -3,6 +3,11 @@ import { NormData } from "../../pages/NewNormPage";
 import Button from "../core/Button";
 import { useSaveNormMutation } from "../../store";
 import Alert from "../core/Alert";
+import AccesoriesTable from "./AccesoriesTable";
+import { Accessory } from "../../commons/types";
+import { FaSave } from "react-icons/fa";
+import { BiEdit, BiTrash } from "react-icons/bi";
+import { useNorm } from "../../hooks/useNorm";
 
 interface NormInformationProps {
   formData: NormData;
@@ -13,6 +18,13 @@ const NormInformation = ({ formData, setFormData }: NormInformationProps) => {
   const [expandedElements, setExpandedElements] = useState<number[]>([]);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const {
+    disableEdit,
+    handleEditingElement,
+    handleShowAddElement,
+    handleShowAddElementButton,
+    handleDisableEdit,
+  } = useNorm();
 
   const [saveNorm, saveNormResult] = useSaveNormMutation();
 
@@ -23,7 +35,7 @@ const NormInformation = ({ formData, setFormData }: NormInformationProps) => {
       setFormData({
         name: "",
         version: "",
-        country: "",
+        country: 0,
         elements: [],
       });
     }
@@ -47,19 +59,34 @@ const NormInformation = ({ formData, setFormData }: NormInformationProps) => {
     }));
   };
 
+  const handleEditItem = (index: number) => {
+    handleDisableEdit(true);
+    handleShowAddElement(true);
+    handleShowAddElementButton(false);
+    handleEditingElement(index);
+  };
+
   const objectToFormData = (data: NormData): FormData => {
     const formData = new FormData();
 
     // Append top-level fields
-    formData.append("name", data.name);
+    formData.append("name", data.name!);
     formData.append("version", data.version);
-    formData.append("country", data.country);
+    formData.append("country", data.country!.toString());
 
     // Append elements
     data.elements.forEach((element, elementIndex) => {
       formData.append(
-        `elements[${elementIndex}].type`,
-        element.type?.toString() || ""
+        `elements[${elementIndex}].subType`,
+        element.subType?.toString() || ""
+      );
+      formData.append(
+        `elements[${elementIndex}].sapReference`,
+        element.sapReference
+      );
+      formData.append(
+        `elements[${elementIndex}].specialItem`,
+        element.specialItem?.toString() || ""
       );
 
       element.values.forEach((value, valueIndex) => {
@@ -74,8 +101,10 @@ const NormInformation = ({ formData, setFormData }: NormInformationProps) => {
         // Append the value based on its type
         if (value.type === "file" && value.value instanceof File) {
           formData.append(`${formattedKey}.value`, value.value); // Append the File
+        } else if (value.type === "object") {
+          formData.append(`${formattedKey}.value`, JSON.stringify(value.value)); // Append string value
         } else {
-          formData.append(`${formattedKey}.value`, value.value); // Append string value
+          formData.append(`${formattedKey}.value`, value.value!.toString());
         }
       });
     });
@@ -86,6 +115,23 @@ const NormInformation = ({ formData, setFormData }: NormInformationProps) => {
   const handleSaveNorm = () => {
     const formaDataTransformed = objectToFormData(formData);
     saveNorm(formaDataTransformed);
+  };
+
+  const renderValue = (value: unknown): string | JSX.Element => {
+    if (value instanceof File) {
+      return value.name;
+    } else if (typeof value === "string" || value instanceof String) {
+      return value as string;
+    } else {
+      if (value !== undefined) {
+        try {
+          return <AccesoriesTable accessories={value as Accessory[]} />;
+        } catch {
+          return "Invalid Value";
+        }
+      }
+    }
+    return "Unknown Value";
   };
 
   return (
@@ -123,38 +169,56 @@ const NormInformation = ({ formData, setFormData }: NormInformationProps) => {
                       </span>
                       <span className="ml-2">Elemento: {index + 1}</span>
                     </button>
-                    <button
-                      className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded text-sm"
-                      onClick={() => handleRemoveElement(index)}
-                    >
-                      Eliminar
-                    </button>
+                    <div className="flex">
+                      <Button
+                        primary
+                        className="py-1 px-3 rounded text-sm"
+                        onClick={() => handleEditItem(index)}
+                        disabled={disableEdit}
+                      >
+                        <BiEdit />
+                      </Button>
+                      <Button
+                        danger
+                        className="py-1 px-3 rounded text-sm"
+                        onClick={() => handleRemoveElement(index)}
+                        disabled={disableEdit}
+                      >
+                        <BiTrash />
+                      </Button>
+                    </div>
                   </div>
                   {expandedElements.includes(index) && (
                     <div className="mt-2">
-                      <h4 className="font-medium mt-2">Tipo: {element.type}</h4>
+                      <h4 className="font-medium mt-2">
+                        Sub Tipo: {element.subType}
+                      </h4>
                       <h4 className="font-medium mt-2">Valores:</h4>
                       <ul className="list-disc pl-5">
                         {element.values.map((value, vIndex) => (
                           <li key={vIndex}>
                             <span className="font-medium">{value.name}:</span>{" "}
-                            {value.value instanceof File
-                              ? value.value.name
-                              : value.value}
+                            {renderValue(value.value)}
                             <span className="ml-2 text-sm text-gray-500">
                               ({value.type})
                             </span>
                           </li>
                         ))}
+                        <li>
+                          <span className="font-medium">Referencia SAP:</span>{" "}
+                          {element.sapReference}
+                        </li>
                       </ul>
                     </div>
                   )}
                 </div>
               ))}
               <Button
-                primary
+                success
                 loading={saveNormResult.isLoading}
                 onClick={handleSaveNorm}
+                icon={<FaSave />}
+                disabled={disableEdit}
               >
                 Guardar Norma
               </Button>

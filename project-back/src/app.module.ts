@@ -7,6 +7,9 @@ import { NormModule } from './modules/norm/norm.module';
 import { ElementModule } from './modules/element/element.module';
 import { TypeModule } from './modules/type/type.module';
 import { FieldModule } from './modules/field/field.module';
+import { SubtypeModule } from './modules/subtype/subtype.module';
+import { AccesoryModule } from './modules/accesory/accesory.module';
+import { SemiFinishedModule } from './modules/semi-finished/semiFinished.module';
 
 @Module({
   imports: [
@@ -24,6 +27,9 @@ import { FieldModule } from './modules/field/field.module';
     ElementModule,
     TypeModule,
     FieldModule,
+    SubtypeModule,
+    AccesoryModule,
+    SemiFinishedModule,
   ],
   providers: [],
 })

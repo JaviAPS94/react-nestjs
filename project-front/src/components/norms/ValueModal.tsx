@@ -1,3 +1,6 @@
+import { Accessory } from "./Accesories";
+import AccesoriesTable from "./AccesoriesTable";
+
 const ValueModal: React.FC<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   values: { [key: string]: any } | Record<string, any>[];
@@ -14,7 +17,14 @@ const ValueModal: React.FC<{
           {Array.isArray(values)
             ? values.map((value, index) => (
                 <div key={index} className="border p-2 rounded">
-                  <strong>{value.name}:</strong> {value.value}
+                  <strong>{value.name}:</strong>
+                  {value.name == "Accesorios" ? (
+                    <AccesoriesTable
+                      accessories={JSON.parse(value.value) as Accessory[]}
+                    />
+                  ) : (
+                    value.value
+                  )}
                 </div>
               ))
             : Object.entries(values).map(([key, value]) => (

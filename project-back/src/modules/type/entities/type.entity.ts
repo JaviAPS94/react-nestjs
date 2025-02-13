@@ -1,15 +1,12 @@
-import { Field } from '../../field/entities/field.entity';
-import { Element } from '../../element/entities/element.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { SubType } from 'src/modules/subtype/entities/subtype.entity';
 
 @Entity()
 export class Type {
@@ -19,12 +16,8 @@ export class Type {
   @Column()
   name: string;
 
-  @OneToMany(() => Element, (element) => element.type)
-  elements: Element[];
-
-  @ManyToOne(() => Field, (field) => field.types)
-  @JoinColumn({ name: 'field_id' })
-  field: Field;
+  @OneToMany(() => SubType, (subType) => subType.type)
+  subTypes: SubType[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

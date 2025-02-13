@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource, QueryRunner } from 'typeorm';
-import { NormService } from '../../../src/modules/norm/norm.service';
+import { NormService } from '../../../src/modules/norm/services/norm.service';
 import { CreateNormDto } from '../../../src/modules/norm/dtos/create-norm.dto';
 import { Country } from '../../../src/modules/country/entities/country.entity';
 import { Type } from '../../../src/modules/type/entities/type.entity';

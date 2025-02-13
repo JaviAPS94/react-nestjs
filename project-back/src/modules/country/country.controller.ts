@@ -41,6 +41,7 @@ export class CountryController {
       const countryDto = new CountryOutputDto();
       countryDto.id = country.id;
       countryDto.name = country.name;
+      countryDto.isoCode = country.isoCode;
       return countryDto;
     });
   }

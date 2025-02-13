@@ -11,21 +11,35 @@ export class Country1725393025456 implements Seeder {
     await repository.insert([
       {
         name: 'Colombia',
+        isoCode: 'CO',
       },
       {
-        name: 'Argentina',
+        name: 'Guatemala',
+        isoCode: 'GT',
       },
       {
         name: 'Ecuador',
+        isoCode: 'EC',
       },
       {
-        name: 'Brasil',
+        name: 'Jamaica',
+        isoCode: 'JM',
       },
       {
-        name: 'Uruguay',
+        name: 'Bolivia',
+        isoCode: 'BO',
       },
       {
-        name: 'Panamá',
+        name: 'Guayana',
+        isoCode: 'GY',
+      },
+      {
+        name: 'Costa Rica',
+        isoCode: 'CR',
+      },
+      {
+        name: 'El Salvador',
+        isoCode: 'SV',
       },
     ]);
   }

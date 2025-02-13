@@ -15,9 +15,11 @@ export class TransformAndValidatePipe implements PipeTransform {
 
     // Extracting elements
     let index = 0;
-    while (value[`elements[${index}].type`] !== undefined) {
+    while (value[`elements[${index}].subType`] !== undefined) {
       const element = {
-        type: parseInt(value[`elements[${index}].type`], 10),
+        subType: parseInt(value[`elements[${index}].subType`], 10),
+        specialItem: parseInt(value[`elements[${index}].specialItem`], 10),
+        sapReference: value[`elements[${index}].sapReference`],
         values: [],
       };
 

@@ -1,4 +1,3 @@
-import { Type } from '../../type/entities/type.entity';
 import { Norm } from '../../norm/entities/norm.entity';
 import {
   Column,
@@ -9,6 +8,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { SubType } from '../../subtype/entities/subtype.entity';
+import { SpecialItem } from './special-item.entity';
 
 @Entity()
 export class Element {
@@ -18,13 +19,20 @@ export class Element {
   @Column('nvarchar', { length: 'max' })
   values: string;
 
+  @Column({ name: 'sap_refence', nullable: true })
+  sapReference: string;
+
   @ManyToOne(() => Norm, (norm) => norm.elements)
   @JoinColumn({ name: 'norm_id' })
   norm: Norm;
 
-  @ManyToOne(() => Type, (type) => type.elements)
-  @JoinColumn({ name: 'type_id' })
-  type: Type;
+  @ManyToOne(() => SubType, (subType) => subType.elements)
+  @JoinColumn({ name: 'subtype_id' })
+  subType: SubType;
+
+  @ManyToOne(() => SpecialItem, (specialItem) => specialItem.elements)
+  @JoinColumn({ name: 'special_item_id' })
+  specialItem: SpecialItem;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

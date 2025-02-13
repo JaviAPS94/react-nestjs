@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { Specification } from "../../commons/types";
 
 const normApi = createApi({
   reducerPath: "normApi",
@@ -12,13 +13,15 @@ const normApi = createApi({
         method: "POST",
         body: normData,
         headers: {
-          // Avoid setting 'Content-Type' explicitly, or set it to undefined
           "Content-Type": undefined,
         },
       }),
     }),
+    getSpecifications: builder.query<Specification[], null>({
+      query: () => "/norm/specifications",
+    }),
   }),
 });
 
-export const { useSaveNormMutation } = normApi;
+export const { useSaveNormMutation, useGetSpecificationsQuery } = normApi;
 export { normApi };

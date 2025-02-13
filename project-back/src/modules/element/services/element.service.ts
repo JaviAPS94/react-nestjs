@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { Element } from './entities/element.entity';
+import { Element } from '../entities/element.entity';
 
 @Injectable()
 export class ElementService {
@@ -8,13 +8,13 @@ export class ElementService {
 
   async getElementsByFilters(
     country: number,
-    name?: string, // Make name optional
+    name?: string,
   ): Promise<Element[]> {
     const queryBuilder = this.dataSource
       .getRepository(Element)
       .createQueryBuilder('element')
       .leftJoinAndSelect('element.norm', 'norm')
-      .leftJoinAndSelect('element.type', 'type')
+      .leftJoinAndSelect('element.subType', 'subType')
       .leftJoinAndSelect('norm.country', 'country')
       .where('country.id = :country', { country });
 

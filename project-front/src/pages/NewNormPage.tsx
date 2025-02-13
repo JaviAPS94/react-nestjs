@@ -1,25 +1,36 @@
 import { useEffect, useState } from "react";
 import NormForm from "../components/norms/NormForm";
-import { useGetCountriesQuery, useGetTypesWithFieldsQuery } from "../store";
+import {
+  useGetCountriesQuery,
+  useGetSpecificationsQuery,
+  useGetTypesWithFieldsQuery,
+} from "../store";
 import NormInformation from "../components/norms/NormInformation";
 import Alert from "../components/core/Alert";
 import { useGetElementsByFiltersQuery } from "../store/apis/elementApi";
+import { NormProvider } from "../context/NormProvider";
 
 export interface ElementValue {
   name: string;
-  value: string | File;
+  value: string | File | object;
   type: string;
   key: string;
+  sapReference: boolean;
+  validations: Record<string, unknown>;
+  descriptionInfo: string;
 }
+
 export interface NormElement {
   values: ElementValue[];
-  type?: number;
+  subType?: number;
+  specialItem?: number;
+  sapReference: string;
 }
 
 export interface NormData {
-  name: string;
+  name: string | undefined;
   version: string;
-  country: string;
+  country: number | undefined;
   elements: NormElement[];
 }
 
@@ -27,7 +38,7 @@ const NewNormPage = () => {
   const [formData, setFormData] = useState<NormData>({
     name: "",
     version: "",
-    country: "",
+    country: undefined,
     elements: [],
   });
 
@@ -36,6 +47,12 @@ const NewNormPage = () => {
     error: errorCountries,
     isLoading: isLoadingCountries,
   } = useGetCountriesQuery(null);
+
+  const {
+    data: specifications,
+    error: errorSpecifications,
+    isLoading: isLoadingSpecifications,
+  } = useGetSpecificationsQuery(null);
 
   const {
     data: types,
@@ -48,18 +65,23 @@ const NewNormPage = () => {
     error: errorElementsByFilters,
     isLoading: isLoadingElementsByFilters,
   } = useGetElementsByFiltersQuery({
-    country: Number(formData.country),
+    country: formData.country || 0,
     name: formData.name,
   });
 
   const [showErrorAlert, setShowErrorAlert] = useState(false);
 
   useEffect(() => {
-    if (errorCountries || errorTypes || errorElementsByFilters) {
+    if (
+      errorCountries ||
+      errorTypes ||
+      errorElementsByFilters ||
+      errorSpecifications
+    ) {
       setShowErrorAlert(true);
-      setTimeout(() => setShowErrorAlert(false), 3000); // Hide after 3 seconds
+      setTimeout(() => setShowErrorAlert(false), 3000);
     }
-  }, [errorCountries, errorTypes, errorElementsByFilters]);
+  }, [errorCountries, errorTypes, errorElementsByFilters, errorSpecifications]);
 
   if (isLoadingCountries) {
     return <div>Loading countries...</div>;
@@ -73,8 +95,12 @@ const NewNormPage = () => {
     return <div>Loading elements by filters...</div>;
   }
 
+  if (isLoadingSpecifications) {
+    return <div>Loading specifications...</div>;
+  }
+
   return (
-    <div>
+    <NormProvider>
       <h1 className="font-bold text-2xl my-10 text-center">
         GENERAR NUEVA NORMA
       </h1>
@@ -87,6 +113,7 @@ const NewNormPage = () => {
               formData={formData}
               setFormData={setFormData}
               elementsByFilters={elementsByFilters}
+              specifications={specifications}
             />
           </div>
           <div className="w-2/6 p-8 bg-white overflow-auto">
@@ -97,7 +124,7 @@ const NewNormPage = () => {
       {showErrorAlert && (
         <Alert message="Ha ocurrido un error al cargar los datos" error />
       )}
-    </div>
+    </NormProvider>
   );
 };
 
