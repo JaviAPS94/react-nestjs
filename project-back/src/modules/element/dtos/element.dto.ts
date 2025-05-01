@@ -21,6 +21,14 @@ export class SubTypeDto {
     example: 'tipo 1',
   })
   name: string;
+  @ApiProperty({
+    example: 'CVT',
+  })
+  code?: string;
+  @ApiProperty({
+    type: () => TypeDto,
+  })
+  type?: TypeDto;
 }
 
 export class ElementResponseDto {
@@ -40,4 +48,8 @@ export class ElementResponseDto {
     type: () => NormDto,
   })
   norm: NormDto;
+  @ApiProperty({
+    example: 'CVT',
+  })
+  sapReference?: string;
 }

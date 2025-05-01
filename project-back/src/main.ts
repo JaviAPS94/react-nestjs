@@ -4,11 +4,20 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as dotenv from 'dotenv';
 import { join } from 'path';
+import { ValidationPipe } from '@nestjs/common';
 
 dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app
+    .useGlobalPipes
+    // new ValidationPipe({
+    //   transform: false, // ✅ Enables DTO transformation
+    //   whitelist: true,
+    //   forbidNonWhitelisted: true,
+    // }),
+    ();
   const options = new DocumentBuilder()
     .setTitle('Proyecto API')
     .setDescription('Your API description')

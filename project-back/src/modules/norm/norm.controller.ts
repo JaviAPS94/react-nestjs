@@ -3,7 +3,9 @@ import {
   Controller,
   Get,
   HttpException,
+  Param,
   Post,
+  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -17,6 +19,7 @@ import { File as MulterFile } from 'multer';
 import { TransformAndValidatePipe } from './pipes/transform-data.pipe';
 import { NormSpecificationService } from './services/norm-specification.service';
 import { NormSpecificationOutputDto } from './dtos/norm-specification-output.dto';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @ApiTags('Norm')
 @Controller('norm')
@@ -87,6 +90,40 @@ export class NormController {
       });
     } catch (error) {
       throw new HttpException(error.message, error.getStatus());
+    }
+  }
+
+  @Get('/all-paginated')
+  @ApiResponse({
+    status: 200,
+    description: 'The records have been successfully retrieved.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error.',
+  })
+  async getAllNormsPaginated(@Query() paginationDto: PaginationDto) {
+    try {
+      return await this.normService.getAllNormsPaginated(paginationDto);
+    } catch (error) {
+      throw new HttpException(error.message, error?.getStatus() ?? 500);
+    }
+  }
+
+  @Get('/:id')
+  @ApiResponse({
+    status: 200,
+    description: 'The record have been successfully retrieved.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error.',
+  })
+  async getById(@Param('id') id: number) {
+    try {
+      return await this.normService.getById(id);
+    } catch (error) {
+      throw new HttpException(error.message, error?.getStatus() ?? 500);
     }
   }
 }

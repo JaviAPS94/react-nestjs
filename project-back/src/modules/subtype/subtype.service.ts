@@ -16,4 +16,19 @@ export class SubTypeService {
       relations: ['field'],
     });
   }
+
+  async findById(id: number): Promise<SubType | null> {
+    const subType = await this.subTypeRepository.findOne({
+      where: { id },
+      relations: ['field'],
+    });
+
+    return subType || null;
+  }
+
+  async findAllWithFields(): Promise<SubType[]> {
+    return await this.subTypeRepository.find({
+      relations: ['field'],
+    });
+  }
 }

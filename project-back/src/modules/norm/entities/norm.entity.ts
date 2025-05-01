@@ -23,6 +23,9 @@ export class Norm {
   @Column()
   version: string;
 
+  @Column({ nullable: true })
+  normFile: string;
+
   @ManyToOne(() => Country, (country) => country.norms)
   @JoinColumn({ name: 'country_id' })
   country: Country;

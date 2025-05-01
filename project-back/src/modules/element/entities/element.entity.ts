@@ -5,11 +5,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { SubType } from '../../subtype/entities/subtype.entity';
 import { SpecialItem } from './special-item.entity';
+import { DesignElement } from 'src/modules/design/entities/design-element.entity';
 
 @Entity()
 export class Element {
@@ -33,6 +35,9 @@ export class Element {
   @ManyToOne(() => SpecialItem, (specialItem) => specialItem.elements)
   @JoinColumn({ name: 'special_item_id' })
   specialItem: SpecialItem;
+
+  @OneToMany(() => DesignElement, (designElement) => designElement.element)
+  designElements: DesignElement[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

@@ -11,7 +11,7 @@ export class AccesoryController {
   @HttpCode(200)
   async getAccesories(@Body() getAccesoryDto: GetAccesotyDto) {
     const response = await this.accesoryService.getAccesories(getAccesoryDto);
-    return (response.result as []).map((accesory) =>
+    return response.result.map((accesory) =>
       OutputAccesoryDto.fromEntity(accesory),
     );
   }

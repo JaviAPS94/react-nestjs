@@ -32,7 +32,6 @@ export class ValidationPipe implements PipeTransform {
     const messages: string[] = [];
 
     errors.forEach((error) => {
-      console.log(error);
       if (error.children && error.children.length > 0) {
         messages.push(...this.formatErrors(error.children));
       } else {
