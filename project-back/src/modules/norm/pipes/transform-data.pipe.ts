@@ -10,6 +10,7 @@ import { validate } from 'class-validator';
 
 @Injectable()
 export class TransformAndValidatePipe implements PipeTransform {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async transform(value: any, _metadata: ArgumentMetadata) {
     const elements = [];
 

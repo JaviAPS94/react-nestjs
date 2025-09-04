@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useGetSemiFinishedQuery } from "../../store";
 import CheckboxList from "../core/CheckboxList";
-import SkeletonText from "../core/SkeletonText";
+import SkeletonText from "../core/skeletons/Skeleton";
 import { SemiFinishedType } from "../../commons/types";
 
 interface SemiFinishedProps {

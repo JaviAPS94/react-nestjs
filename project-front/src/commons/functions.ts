@@ -1,3 +1,4 @@
+import { NormElement } from "../pages/NormPage";
 import { NumberValidations, StringValidations } from "./types";
 
 const toCamelCase = (str: string): string => {
@@ -83,4 +84,14 @@ const validateStringField = (
   return errors;
 };
 
-export { toCamelCase, validateNumberField, validateStringField };
+const urlToFile = async (url: string): Promise<File> => {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  const mimeType =
+    response.headers.get("Content-Type") || "application/octet-stream"; // Default to binary if unknown
+  const fileName = url.split("/").pop() || "downloadedFile";
+
+  return new File([blob], fileName, { type: mimeType });
+};
+
+export { toCamelCase, validateNumberField, validateStringField, urlToFile };

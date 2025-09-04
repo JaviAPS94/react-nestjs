@@ -4,11 +4,9 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { SubDesignFunction } from './sub-design-function.entity';
 import { Design } from './design.entity';
 
 @Entity()
@@ -22,11 +20,8 @@ export class SubDesign {
   @Column('nvarchar', { length: 'max' })
   code: string;
 
-  @OneToMany(
-    () => SubDesignFunction,
-    (subDesignFunction) => subDesignFunction.subDesign,
-  )
-  subDesignFunctions: SubDesignFunction[];
+  @Column({ type: 'text', nullable: true })
+  data?: string;
 
   @ManyToOne(() => Design, (design) => design.subDesigns)
   @JoinColumn({ name: 'design_id' })

@@ -1,16 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
-import Modal from "react-modal";
 import {
   toCamelCase,
   validateNumberField,
   validateStringField,
 } from "../../commons/functions";
-import { ElementValue, NormData, NormElement } from "../../pages/NewNormPage";
+import { ElementValue, NormData, NormElement } from "../../pages/NormPage";
 import Accesories from "./Accesories";
 import AccesoriesTable from "./AccesoriesTable";
-import { Accessory, SemiFinishedType, SpecialItem } from "../../commons/types";
+import {
+  Accessory,
+  SemiFinishedType,
+  SpecialItem,
+  SubType,
+} from "../../commons/types";
 import Button from "../core/Button";
-import { FaChevronRight, FaPlus, FaTimes } from "react-icons/fa";
+import { FaPlus, FaTimes } from "react-icons/fa";
 import SemiFinished from "./SemiFinished";
 import RadioGroup, { RadioOption } from "../core/RadioGroup";
 import { SpecificationEnum } from "../../commons/enums";
@@ -19,19 +23,40 @@ import EditableInput from "../core/EditableInput";
 import TooltipGeneral from "../core/TooltipGeneral";
 import { IoIosInformationCircleOutline } from "react-icons/io";
 import { useNorm } from "../../hooks/useNorm";
+import Stepper from "../core/Stepper";
+import YesNoRadio from "../core/YesNoRadio";
+import CheckboxList from "../core/CheckboxList";
+import { Modal } from "../core/Modal";
+import { AppDispatch, subTypeApi } from "../../store";
+import { useDispatch } from "react-redux";
+import { FileUpload } from "../core/FileUpload";
 
 export interface FormData {
   customFields: ElementValue[];
+}
+
+interface MatchedChild {
+  id: string;
+  description: string;
+  reference: unknown;
+}
+
+interface MatchedElement {
+  id: number;
+  description: string;
+  children: MatchedChild[];
 }
 
 interface ElementFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   baseFieldsValue: Record<string, Record<string, any>> | undefined;
   handleAddElementToNorm: (element: NormElement) => void;
-  handleUpdateElementNorm: (element: NormElement) => void;
+  handleUpdateElementNorm: (element: NormElement, index: number) => void;
+  handleResetStatesAfterUpdateElementNorm: () => void;
   countryCode: string | undefined;
   normData: NormData;
   subTypeCode: string | undefined;
+  subTypes: SubType[] | undefined;
 }
 
 const specificationOptions: RadioOption[] = [
@@ -43,12 +68,17 @@ const ElementForm = ({
   baseFieldsValue,
   handleAddElementToNorm,
   handleUpdateElementNorm,
+  handleResetStatesAfterUpdateElementNorm,
   countryCode,
   normData,
   subTypeCode,
 }: ElementFormProps) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [currentSubTypeCode, setCurrentSubTypeCode] = useState<
+    string | undefined
+  >(subTypeCode);
   const [accessoryModalIsOpen, setAccessoryModalIsOpen] = useState(false);
+  const [fieldsUpdateModalIsOpen, setFieldsUpdateModalIsOpen] = useState(false);
   const [newField, setNewField] = useState<Omit<ElementValue, "value">>({
     name: "",
     type: "text",
@@ -63,11 +93,14 @@ const ElementForm = ({
       editingElement !== null ? normData.elements[editingElement].values : [],
   });
   const [selectedSubItems, setSelectedSubItems] = useState<number[]>([]);
+  const [selectedElements, setSelectedElements] = useState<string[]>([]);
+  const [selectedFieldsItems, setSelectedFieldsItems] = useState<string[]>([]);
   const [selectedSemiFinished, setSelectedSemiFinished] =
     useState<SemiFinishedType>();
   const [accessoriesData, setAccessoriesData] = useState<Accessory[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [step, setStep] = useState(0);
+  const [fieldsUpdateStep, setFieldsUpdateStep] = useState(0);
   const [accesoriesError, setAccesoriesError] = useState<string>("");
   const [newFieldError, setNewFieldError] = useState<string>("");
   const [selectedOption, setSelectedOption] = useState<string>(
@@ -80,6 +113,11 @@ const ElementForm = ({
     string | undefined
   >();
   const [sapRefence, setSapReference] = useState("");
+  const [answerContinueAccesories, setAnswerContinueAccesories] =
+    useState<string>("no");
+  const [answerContinueAField, setAnswerContinueField] = useState<string>("no");
+  const [matchedElements, setMatchedElements] = useState<MatchedElement[]>([]);
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     const initializeCustomFields = () => {
@@ -128,7 +166,9 @@ const ElementForm = ({
     if (editingElement === null) {
       initializeCustomFields();
     } else {
-      const currentValues = normData.elements[editingElement].values;
+      const currentElement = normData.elements[editingElement];
+      const currentValues = currentElement.values;
+      setCurrentSubTypeCode(currentElement.subTypeCode);
       setFormData((prevData) => ({
         ...prevData,
         customFields: currentValues,
@@ -148,6 +188,14 @@ const ElementForm = ({
   const openModal = () => setModalIsOpen(true);
   const closeModal = () => setModalIsOpen(false);
 
+  const handleAnswerContinueAccesory = (value: string) => {
+    setAnswerContinueAccesories(value);
+  };
+
+  const handleAnswerContinueField = (value: string) => {
+    setAnswerContinueField(value);
+  };
+
   const updateCustomFieldValue = (
     key: string,
     newValue: string | File | object
@@ -161,6 +209,7 @@ const ElementForm = ({
   };
 
   const handleSapReferenceChange = (value: string) => {
+    generateValue();
     setSapReference(value);
   };
 
@@ -195,6 +244,9 @@ const ElementForm = ({
 
   const toogleAccessoryModal = () =>
     setAccessoryModalIsOpen(!accessoryModalIsOpen);
+
+  const toogleFieldsUpdateModal = () =>
+    setFieldsUpdateModalIsOpen(!fieldsUpdateModalIsOpen);
 
   const handleAddField = () => {
     if (newField.name && newField.type) {
@@ -233,15 +285,133 @@ const ElementForm = ({
   };
 
   const handleNextStep = () => {
-    if (selectedSubItems.length > 0) {
-      setStep(1);
-      setAccesoriesError("");
+    // if (selectedSubItems.length > 0) {
+    //   set
+    //   setAccesoriesError("");
+    // } else {
+    //   setAccesoriesError("Debes seleccionar al menos un accesorio.");
+    // }
+    setStep((prevStep) => prevStep + 1);
+  };
+
+  const handleNextStepFieldsUpdate = () => {
+    setFieldsUpdateStep((prevStep) => prevStep + 1);
+  };
+
+  const handleCancelFieldStepper = () => {
+    toogleFieldsUpdateModal();
+    setAnswerContinueField("no");
+    setFieldsUpdateStep(0);
+  };
+
+  const addAccessoryToElement = (
+    elements: NormElement[],
+    newAccessory: object
+  ) => {
+    selectedElements.forEach((elementId) => {
+      const element = elements.find((el) => el.sapReference === elementId);
+
+      if (!element) return;
+
+      const accessoriesField = element.values.find(
+        (v) => v.key === "accesories"
+      );
+
+      if (accessoriesField) {
+        if (Array.isArray(accessoriesField.value)) {
+          const exists = accessoriesField.value.some(
+            (acc) => JSON.stringify(acc) === JSON.stringify(newAccessory)
+          );
+          if (!exists) {
+            accessoriesField.value = [...accessoriesField.value, newAccessory];
+          }
+        }
+      } else {
+        element.values.push({
+          key: "accesories",
+          name: "Accesorios",
+          sapReference: false,
+          validations: {},
+          descriptionInfo: "Accesorios del elemento",
+          value: [newAccessory],
+          type: "object",
+        });
+      }
+    });
+  };
+
+  const handleUpdateFieldsInElements = () => {
+    if (answerContinueAField === "no") {
+      handleUpdateCurrentEditingElement();
     } else {
-      setAccesoriesError("Debes seleccionar al menos un accesorio.");
+      handleUpdateCurrentEditingElement();
+      const result = selectedFieldsItems
+        .filter(
+          (item): item is string =>
+            typeof item === "string" && item.includes("-")
+        )
+        .map((str) => {
+          const [key, elementStr, ...rest] = str.split("-");
+          const type = rest.pop();
+          const rawValue = rest.join("-");
+
+          const element = Number(elementStr);
+          let value: unknown;
+
+          switch (type) {
+            case "number":
+              value = Number(rawValue);
+              break;
+            case "boolean":
+              value = rawValue === "true";
+              break;
+            case "date":
+              value = new Date(rawValue);
+              break;
+            case "file":
+            case "text":
+            case "string":
+            default:
+              value = rawValue;
+          }
+
+          return {
+            key,
+            value,
+            element,
+          };
+        });
+
+      result.forEach((item) => {
+        const element = normData.elements[item.element];
+        const field = element.values.find((f) => f.key === item.key);
+        if (field) {
+          field.value = item.value;
+        }
+        const updatedElements = normData.elements.map((el, index) => {
+          if (index === item.element) {
+            return {
+              ...el,
+              values: el.values.map((f) =>
+                f.key === item.key ? { ...f, value: item.value } : f
+              ),
+            } as NormElement;
+          }
+          return el;
+        });
+        handleUpdateElementNorm(updatedElements[item.element], item.element);
+      });
+
+      handleResetStatesAfterUpdateElementNorm();
     }
   };
 
   const handleAddAccesory = () => {
+    addAccessoryToElement(
+      normData.elements,
+      filterAccesoriesByIds(selectedSubItems)[0]
+    );
+
     if (selectedSubItems.length > 0 && selectedSemiFinished) {
       setFormData((prevData) => ({
         ...prevData,
@@ -252,10 +422,15 @@ const ElementForm = ({
                   ...field,
                   name: "Accesorios",
                   value: [
-                    ...new Set([
-                      ...(Array.isArray(field.value) ? field.value : []),
-                      ...filterAccesoriesByIds(selectedSubItems),
-                    ]),
+                    ...(Array.isArray(field.value) ? field.value : []), // Accesorios existentes
+                    ...filterAccesoriesByIds(selectedSubItems).filter(
+                      (newAccessory) =>
+                        !(field.value as object[])?.some(
+                          (existing) =>
+                            JSON.stringify(existing) ===
+                            JSON.stringify(newAccessory)
+                        )
+                    ), // Solo añadir si no está duplicado
                   ],
                   type: "object",
                 }
@@ -282,6 +457,7 @@ const ElementForm = ({
       setAccessoriesData([]);
       setStep(0);
       setSelectedSemiFinished(undefined);
+      setAnswerContinueAccesories("yes");
     } else {
       setAccesoriesError("Debes seleccionar al menos un semi elaborado.");
     }
@@ -307,6 +483,21 @@ const ElementForm = ({
       setFormData({ ...formData, [name]: value });
     }
   };
+
+  const handleFileChange =
+    (name: string, index?: number) => (file: File | null) => {
+      console.log("file", file);
+      if (index !== undefined) {
+        setFormData((prevData) => {
+          const updatedFields = [...prevData.customFields];
+          updatedFields[index] = {
+            ...updatedFields[index],
+            [name]: file,
+          };
+          return { ...prevData, customFields: updatedFields };
+        });
+      }
+    };
 
   const validateFormDataFields = () => {
     const newErrors: Record<string, string> = {};
@@ -379,7 +570,72 @@ const ElementForm = ({
     }
   };
 
-  const handleUpdateElement = () => {
+  const compareValues = (original: ElementValue[], updated: ElementValue[]) => {
+    const updatedMap = new Map(updated.map((item) => [item.key, item.value]));
+    const differences: { key: string; newValue: unknown; type: string }[] = [];
+
+    for (const item of original) {
+      const updatedValue = updatedMap.get(item.key);
+      if (JSON.stringify(item.value) !== JSON.stringify(updatedValue)) {
+        differences.push({
+          key: item.key,
+          newValue: updatedValue,
+          type: item.type,
+        });
+      }
+    }
+
+    return differences;
+  };
+
+  const getMatchedElementsWithFields = async (): Promise<MatchedElement[]> => {
+    const differences = compareValues(
+      normData.elements[editingElement!].values,
+      formData.customFields
+    );
+
+    const matchedElements: MatchedElement[] = [];
+
+    for (const [index, element] of normData.elements.entries()) {
+      if (index === editingElement) continue;
+
+      const result = await dispatch(
+        subTypeApi.endpoints.getSubTypeById.initiate(element.subType!)
+      ).unwrap();
+
+      const baseFields = result.field.base;
+      const topLevelBaseKeys = Object.keys(baseFields);
+
+      const foundKeys = element.values
+        .map((value) => {
+          const match = differences.find(
+            (search) =>
+              search.key === value.key && !topLevelBaseKeys.includes(value.key)
+          );
+          return match
+            ? {
+                id: `${value.key}-${index}-${match.newValue}-${value.type}`,
+                description: value.name,
+                reference: `Nuevo valor: ${match.newValue}`,
+                // Maybe use some data from result here if needed
+              }
+            : null;
+        })
+        .filter(Boolean) as MatchedChild[];
+
+      if (foundKeys.length > 0) {
+        matchedElements.push({
+          id: index,
+          description: `Elemento ${index + 1} - ${element.subTypeName}`,
+          children: foundKeys,
+        });
+      }
+    }
+
+    return matchedElements;
+  };
+
+  const handleUpdateCurrentEditingElement = () => {
     const passValidation = validateFormDataFields();
     if (passValidation) {
       const selectedItem = normData.elements[editingElement!];
@@ -389,19 +645,32 @@ const ElementForm = ({
         specialItem: selectedItem.specialItem,
         subType: selectedItem.subType,
       };
-      handleUpdateElementNorm(element);
+      handleUpdateElementNorm(element, editingElement!);
+      handleResetStatesAfterUpdateElementNorm();
       setLetterSpecification(undefined);
+    }
+  };
+
+  const handleUpdateElement = async () => {
+    const matchedElementsLocal = editingElement
+      ? await getMatchedElementsWithFields()
+      : [];
+
+    setMatchedElements(matchedElementsLocal);
+
+    if (matchedElementsLocal.length > 0) {
+      setFieldsUpdateModalIsOpen(true);
+    } else {
+      handleUpdateCurrentEditingElement();
     }
   };
 
   const getValueFromCustomFields = useCallback(
     (key: string) => {
-      const field = formData.customFields.find(
-        (field) => field.key === key && field.sapReference
-      );
+      const field = formData.customFields.find((field) => field.key === key);
       return field ? field.value ?? "" : "";
     },
-    [formData.customFields]
+    [formData]
   );
 
   const generateValue = useCallback(() => {
@@ -409,10 +678,187 @@ const ElementForm = ({
       "power"
     )}-${getValueFromCustomFields("primaryVoltage")}-${getValueFromCustomFields(
       "secondaryVoltage"
-    )}-${subTypeCode}-${getValueFromCustomFields("connection")}-${
+    )}-${currentSubTypeCode}-${getValueFromCustomFields("connection")}-${
       normData.name
     }-${countryCode}-${getValueFromCustomFields("specification")}`;
-  }, [subTypeCode, normData.name, countryCode, getValueFromCustomFields]);
+  }, [
+    currentSubTypeCode,
+    normData.name,
+    countryCode,
+    getValueFromCustomFields,
+  ]);
+
+  const toggleElement = (id: unknown) => {
+    const elementId = id as string;
+    setSelectedElements((prev) =>
+      prev.includes(elementId)
+        ? prev.filter((subId) => subId !== elementId)
+        : [...prev, elementId]
+    );
+  };
+
+  const handleSelectAllElements = (selected: unknown[]) => {
+    setSelectedElements(selected as string[]);
+  };
+
+  const mapElementsToCheckList = (elements: NormElement[]) => {
+    let elementsTransformed = elements.map((element, index) => ({
+      id: element.sapReference,
+      description: `Elemento ${index + 1}`,
+      reference: element.sapReference,
+    }));
+
+    if (editingElement !== null) {
+      const currentElement = elements[editingElement];
+      elementsTransformed = elementsTransformed.filter(
+        (element) => element.reference !== currentElement.sapReference
+      );
+    }
+
+    return elementsTransformed;
+  };
+
+  const stepComponents: Record<
+    number,
+    { title?: string; content: JSX.Element; isFinalStep?: boolean }
+  > = {
+    0: {
+      title: "Selecciona el accesorio",
+      content: (
+        <Accesories
+          accessoriesData={accessoriesData}
+          setAccessoriesData={setAccessoriesData}
+          selectedSubItems={selectedSubItems}
+          setSelectedSubItems={setSelectedSubItems}
+        />
+      ),
+      isFinalStep: false,
+    },
+    1: {
+      title: "Selecciona el semi elaborado",
+      content: (
+        <SemiFinished setSelectedSemiFinished={setSelectedSemiFinished} />
+      ),
+      isFinalStep: false,
+    },
+    2: {
+      title: "Deseas agregar este accesorio a más elementos?",
+      content: (
+        <YesNoRadio
+          defaultValue={answerContinueAccesories}
+          onChange={handleAnswerContinueAccesory}
+          disabled={mapElementsToCheckList(normData.elements).length === 0}
+        />
+      ),
+    },
+    3: {
+      content: (
+        <CheckboxList
+          items={mapElementsToCheckList(normData.elements)}
+          selectedItems={selectedElements}
+          toggleItem={toggleElement}
+          labelFieldKey="description"
+          additionalFieldKey="reference"
+          selectAll={handleSelectAllElements}
+          title="los elementos"
+          multipleItems
+        />
+      ),
+      isFinalStep: true,
+    },
+  };
+
+  const findParentIds = (itemId: string): string[] => {
+    const findParent = (
+      items: {
+        id: string;
+        description: string;
+        reference: string;
+        children?: {
+          id: string;
+          description: string;
+          reference: string;
+        }[];
+      }[],
+      targetId: string,
+      parentIds: string[] = []
+    ): string[] => {
+      for (const item of items) {
+        if (item.id === targetId) {
+          return parentIds;
+        }
+
+        if (item.children && item.children.length > 0) {
+          const foundParentIds = findParent(item.children, targetId, [
+            ...parentIds,
+            item.id,
+          ]);
+          if (foundParentIds.length > 0) {
+            return foundParentIds;
+          }
+        }
+      }
+
+      return [];
+    };
+
+    return findParent(matchedElements, itemId);
+  };
+
+  const toggleFields = (id: unknown) => {
+    const itemId = id as string;
+
+    setSelectedFieldsItems((prev) => {
+      // If the item is already selected, just remove it
+      if (prev.includes(itemId)) {
+        return prev.filter((item) => item !== itemId);
+      }
+      // If the item is being selected, also select all parent items
+      else {
+        const parentIds = findParentIds(itemId);
+        // Create a new array with all parent IDs and the current ID, avoiding duplicates
+        const newSelected = [...new Set([...prev, ...parentIds, itemId])];
+        return newSelected;
+      }
+    });
+  };
+
+  const handleSelectAllFields = (selected: unknown[]) => {
+    setSelectedFieldsItems(selected as string[]);
+  };
+
+  const fieldsUpdateStepComponents: Record<
+    number,
+    { title?: string; content: JSX.Element; isFinalStep?: boolean }
+  > = {
+    0: {
+      title:
+        "Hay campos que actualizaste que estan presentes en otros elementos. Deseas seleccionar otros elementos a modificar?",
+      content: (
+        <YesNoRadio
+          defaultValue={answerContinueAField}
+          onChange={handleAnswerContinueField}
+        />
+      ),
+      isFinalStep: false,
+    },
+    1: {
+      content: (
+        <CheckboxList
+          items={matchedElements}
+          selectedItems={selectedFieldsItems}
+          toggleItem={toggleFields}
+          labelFieldKey="description"
+          additionalFieldKey="reference"
+          childrenKey={"children"}
+          selectAll={handleSelectAllFields}
+          title="los campos"
+          multipleItems
+        />
+      ),
+      isFinalStep: true,
+    },
+  };
 
   return (
     <div className="mt-10">
@@ -437,7 +883,6 @@ const ElementForm = ({
           </Button>
         </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {formData.customFields.map(
           (field, index) =>
@@ -460,11 +905,18 @@ const ElementForm = ({
                 </div>
 
                 {field.type === "file" ? (
-                  <input
-                    type="file"
-                    name="value"
-                    onChange={(e) => handleChange(e, index)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 my-5"
+                  <FileUpload
+                    onFileSelect={handleFileChange("value", index)}
+                    showUploadButton={false}
+                    accept="image/*,application/pdf,.docx"
+                    maxSize={10 * 1024 * 1024}
+                    {...(field.value !== null && field.value !== ""
+                      ? field.value instanceof File
+                        ? { initialFile: field.value }
+                        : {
+                            existingFileUrl: `http://localhost:3000/${field.value}`,
+                          }
+                      : {})}
                   />
                 ) : field.type === "date" ? (
                   <input
@@ -486,12 +938,29 @@ const ElementForm = ({
                       showDelete
                     />
                   </div>
+                ) : field.type === "number" ? (
+                  <input
+                    type={field.type}
+                    name="value"
+                    placeholder="Ingrese un valor"
+                    value={field.value as number}
+                    onChange={(e) => handleChange(e, index)}
+                    className={`block w-full rounded-md border focus:outline-none focus:ring-2 shadow-sm p-3 mt-5 ${
+                      errors[index]
+                        ? "border-red-500 focus:ring-red-500"
+                        : "focus:ring-blue-500"
+                    }`}
+                  />
                 ) : (
                   <input
                     type={field.type}
                     name="value"
                     placeholder="Ingrese un valor"
-                    value={typeof field.value === "string" ? field.value : ""}
+                    value={
+                      field.type === "string" || typeof field.value === "string"
+                        ? (field.value as string)
+                        : ""
+                    }
                     onChange={(e) => handleChange(e, index)}
                     className={`block w-full rounded-md border focus:outline-none focus:ring-2 shadow-sm p-3 mt-5 ${
                       errors[index]
@@ -563,13 +1032,10 @@ const ElementForm = ({
 
       <Modal
         isOpen={modalIsOpen}
-        onRequestClose={closeModal}
-        contentLabel="Select Field Type and Name"
-        className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-25"
+        onClose={closeModal}
+        title="Agregar un nuevo campo"
       >
-        <div className="bg-white p-6 rounded-md shadow-lg">
-          <h2 className="text-lg font-medium">Agregar un nuevo campo</h2>
+        <>
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700">
               Nombre del campo
@@ -622,61 +1088,39 @@ const ElementForm = ({
               Cancelar
             </Button>
           </div>
-        </div>
+        </>
       </Modal>
 
       <Modal
         isOpen={accessoryModalIsOpen}
-        onRequestClose={toogleAccessoryModal}
-        contentLabel="Selecciona los accesorios"
-        className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-25"
+        onClose={toogleAccessoryModal}
+        title="Agregar accesorio"
       >
-        <div className="bg-white p-6 rounded-md shadow-lg max-w-3xl w-full">
-          <h2 className="text-lg font-medium">
-            {
-              ["Selecciona los accesorios", "Selecciona el semi elaborado"][
-                step
-              ]
-            }
-          </h2>
-          <div className="mt-4 max-h-96 overflow-y-auto">
-            {step === 0 && (
-              <>
-                <Accesories
-                  accessoriesData={accessoriesData}
-                  setAccessoriesData={setAccessoriesData}
-                  selectedSubItems={selectedSubItems}
-                  setSelectedSubItems={setSelectedSubItems}
-                />
-              </>
-            )}
-            {step === 1 && (
-              <SemiFinished setSelectedSemiFinished={setSelectedSemiFinished} />
-            )}
-          </div>
-          {accesoriesError && (
-            <span className="text-red-500 text-sm">{accesoriesError}</span>
-          )}
-          <div className="mt-6 flex justify-center">
-            <Button
-              primary={step === 0}
-              success={step === 1}
-              onClick={step === 0 ? handleNextStep : handleAddAccesory}
-              className="mr-2 text-white px-4 py-2 rounded-md"
-              icon={step === 0 ? <FaChevronRight /> : <FaPlus />}
-            >
-              {step === 0 ? "Continuar" : "Agregar"}
-            </Button>
-            <Button
-              onClick={handleCancel}
-              className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
-              icon={<FaTimes />}
-            >
-              Cancelar
-            </Button>
-          </div>
-        </div>
+        <Stepper
+          step={step}
+          stepComponents={stepComponents}
+          errorMessage={accesoriesError}
+          onNextStep={handleNextStep}
+          onFinalAction={handleAddAccesory}
+          onCancel={handleCancel}
+          finishFlow={answerContinueAccesories === "no" && step === 2}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={fieldsUpdateModalIsOpen}
+        onClose={toogleFieldsUpdateModal}
+        title="Actualizar campo en elementos"
+        size="xl"
+      >
+        <Stepper
+          step={fieldsUpdateStep}
+          stepComponents={fieldsUpdateStepComponents}
+          onNextStep={handleNextStepFieldsUpdate}
+          onFinalAction={handleUpdateFieldsInElements}
+          onCancel={handleCancelFieldStepper}
+          finishFlow={answerContinueAField === "no" && fieldsUpdateStep === 0}
+        />
       </Modal>
     </div>
   );

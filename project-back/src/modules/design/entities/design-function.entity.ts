@@ -7,7 +7,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { DesignSubTypeFunction } from './design-subtype-function.entity';
-import { SubDesignFunction } from './sub-design-function.entity';
 
 @Entity('design_function')
 export class DesignFunction {
@@ -16,6 +15,9 @@ export class DesignFunction {
 
   @Column({ type: 'varchar', length: 100, unique: true })
   name: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  code: string;
 
   @Column({ type: 'text' })
   expression: string;
@@ -26,17 +28,14 @@ export class DesignFunction {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
+  @Column({ type: 'text', nullable: true })
+  constants?: string;
+
   @OneToMany(
     () => DesignSubTypeFunction,
     (designSubTypeFunction) => designSubTypeFunction.designSubType,
   )
   designSubTypeFunctions: DesignSubTypeFunction[];
-
-  @OneToMany(
-    () => SubDesignFunction,
-    (subDesignFunction) => subDesignFunction.designFunction,
-  )
-  subDesignFunctions: SubDesignFunction[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

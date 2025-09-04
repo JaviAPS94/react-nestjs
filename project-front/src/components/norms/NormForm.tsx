@@ -7,7 +7,7 @@ import {
   Specification,
   Type,
 } from "../../commons/types";
-import { NormData, NormElement } from "../../pages/NewNormPage";
+import { NormData, NormElement } from "../../pages/NormPage";
 import DataTable from "./DataTable";
 import { useGetSubTypesWithFieldsByTypeQuery } from "../../store";
 import Alert from "../core/Alert";
@@ -15,6 +15,7 @@ import Button from "../core/Button";
 import { FaPlus, FaTimes } from "react-icons/fa";
 import Select, { Option } from "../core/Select";
 import { useNorm } from "../../hooks/useNorm";
+import { FileUpload, FileUploadHandle } from "../core/FileUpload";
 
 interface NormFormProps {
   countries: Country[] | undefined;
@@ -23,6 +24,8 @@ interface NormFormProps {
   setFormData: React.Dispatch<React.SetStateAction<NormData>>;
   elementsByFilters: ElementResponse[] | undefined;
   specifications: Specification[] | undefined;
+  handleFileSelect: (file: File | null) => void;
+  fileUploadRef: React.RefObject<FileUploadHandle>;
 }
 
 const NormForm = ({
@@ -32,9 +35,12 @@ const NormForm = ({
   setFormData,
   elementsByFilters,
   specifications,
+  handleFileSelect,
+  fileUploadRef,
 }: NormFormProps) => {
   const [selectedType, setSelectedType] = useState<number>();
   const [selectedSubType, setSelectedSubType] = useState<number>();
+  const [selectedSubTypeName, setSelectedSubTypeName] = useState<string>("");
   const [baseFields, setBaseFields] =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     useState<Record<string, Record<string, any>>>();
@@ -46,6 +52,7 @@ const NormForm = ({
   >({});
   const [countryCode, setCountryCode] = useState<string | undefined>();
   const [subTypeCode, setSubtypeCode] = useState<string | undefined>();
+
   const {
     showAddElement,
     toogleShowAddElement,
@@ -84,6 +91,10 @@ const NormForm = ({
       newErrors.country = "Debes seleccionar un país";
     }
 
+    if (!formData.normFile) {
+      newErrors.normFile = "Debes cargar un archivo";
+    }
+
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
@@ -94,10 +105,9 @@ const NormForm = ({
   const closeTypeModal = () => setTypeModalIsOpen(false);
 
   const handleCancelAddElement = () => {
-    toogleShowAddElementButton();
-    toogleShowAddElement();
     setSelectedType(undefined);
     setSelectedSubType(undefined);
+    setSelectedSubTypeName("");
     setElementTypeErrors({});
     closeTypeModal();
   };
@@ -130,9 +140,12 @@ const NormForm = ({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
 
-    setFormData({ ...formData, [name]: value });
+    setFormData({
+      ...formData,
+      [name]: type === "file" ? e.target.files : value,
+    });
   };
 
   const handleCountryChange = (countryId: number | undefined) => {
@@ -150,6 +163,7 @@ const NormForm = ({
     const elementWithType = {
       ...element,
       subType: Number(selectedSubType),
+      subTypeName: selectedSubTypeName,
     };
     setFormData((prevData) => ({
       ...prevData,
@@ -159,17 +173,24 @@ const NormForm = ({
     toogleShowAddElement();
     setSelectedType(undefined);
     setSelectedSubType(undefined);
+    setSelectedSubTypeName("");
   };
 
-  const handleUpdateElementNorm = (element: NormElement) => {
+  const handleUpdateElementNorm = (element: NormElement, index: number) => {
     setFormData((prevData) => {
       const elements = [...prevData.elements];
-      elements[editingElement!] = element;
+      elements[index] = {
+        ...elements[index],
+        ...element,
+      };
       return {
         ...prevData,
         elements,
       };
     });
+  };
+
+  const handleResetStatesAfterUpdateElementNorm = () => {
     toogleShowAddElementButton();
     toogleShowAddElement();
     setSelectedType(undefined);
@@ -177,15 +198,24 @@ const NormForm = ({
     handleDisableEdit(false);
     handleEditingElement(null);
   };
-
   const handleSelectedType = (typeId: number | undefined) => {
     setSelectedType(typeId);
   };
 
   const handleSubTypeChange = (subTypeId: number | undefined) => {
+    const subTypeSelect = subTypes?.find((subType) => subType.id === subTypeId);
     setSelectedSubType(subTypeId);
-    setSubtypeCode(subTypes?.find((subType) => subType.id === subTypeId)?.code);
+    setSubtypeCode(subTypeSelect?.code);
+    setSelectedSubTypeName(subTypeSelect?.name || "");
   };
+
+  useEffect(() => {
+    if (formData.country && countries) {
+      setCountryCode(
+        countries?.find((country) => country.id === formData.country)?.isoCode
+      );
+    }
+  }, [formData, countries]);
 
   return (
     <>
@@ -234,6 +264,23 @@ const NormForm = ({
       </div>
 
       <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700">
+          Documento asociado a la norma
+        </label>
+        <FileUpload
+          ref={fileUploadRef}
+          onFileSelect={handleFileSelect}
+          showUploadButton={false}
+          accept="image/*,application/pdf,.docx"
+          maxSize={10 * 1024 * 1024}
+          initialFile={formData.normFile}
+        />
+        {errors.normFile && (
+          <span className="text-red-500 text-sm">{errors.normFile}</span>
+        )}
+      </div>
+
+      <div className="mt-4">
         <label className="block text-sm font-medium text-gray-700">País</label>
         <Select
           options={countries?.map(
@@ -269,6 +316,7 @@ const NormForm = ({
         onRequestClose={closeTypeModal}
         className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center"
         overlayClassName="fixed inset-0 bg-black bg-opacity-25"
+        ariaHideApp={false}
       >
         <div className="bg-white p-6 rounded-md shadow-lg">
           <h2 className="text-lg font-medium">
@@ -335,9 +383,13 @@ const NormForm = ({
           baseFieldsValue={baseFields}
           handleAddElementToNorm={handleAddElementToNorm}
           handleUpdateElementNorm={handleUpdateElementNorm}
+          handleResetStatesAfterUpdateElementNorm={
+            handleResetStatesAfterUpdateElementNorm
+          }
           countryCode={countryCode}
           normData={formData}
           subTypeCode={subTypeCode}
+          subTypes={subTypes}
         />
       )}
       <h2 className="mt-5 font-bold text-xl">Elementos que podrías cargar</h2>

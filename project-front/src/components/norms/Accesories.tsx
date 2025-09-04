@@ -3,7 +3,7 @@ import { BiSearch } from "react-icons/bi";
 import { useGetAccesoriesByNameMutation } from "../../store";
 import { Accessory, GetAccesoryByNameParams } from "../../commons/types";
 import Button from "../core/Button";
-import SkeletonText from "../core/SkeletonText";
+import SkeletonText from "../core/skeletons/Skeleton";
 import { INVENTARY_TYPE_DEFAULT } from "../../commons/constants";
 import CheckboxList from "../core/CheckboxList";
 
@@ -44,13 +44,21 @@ const Accesories = ({
     // }
   }, [getAccesoriesByNameResult]);
 
-  const toggleSubItem = (id: number) => {
+  const toggleSubItem = (id: unknown) => {
+    const subItemId = id as number;
     setSelectedSubItems((prev) =>
-      prev.includes(id) ? prev.filter((subId) => subId !== id) : [...prev, id]
+      prev.includes(subItemId)
+        ? prev.filter((subId) => subId !== subItemId)
+        : [...prev, subItemId]
     );
   };
 
-  const handleAccesoriesSearch = () => {
+  const handleAccesoriesSearch = (e?: React.MouseEvent | React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     if (!accessorySearch.trim()) {
       setAccessorySearchInputError(
         "Por favor ingrese algún texto para poder buscar."
@@ -69,16 +77,22 @@ const Accesories = ({
   return (
     <div className="w-full">
       <div className="p-4 space-y-4">
-        <div className="w-full flex items-center justify-between">
+        <form 
+          className="w-full flex items-center justify-between" 
+          onSubmit={handleAccesoriesSearch}
+        >
           <div className="relative w-full pr-5">
             <input
               type="text"
               placeholder="Buscar por accesorio"
               value={accessorySearch}
               onChange={(e) => {
+                e.stopPropagation(); // Stop event from bubbling up
                 setAccessorySearch(e.target.value);
                 setAccessorySearchInputError(""); // Clear error while typing
               }}
+              onClick={(e) => e.stopPropagation()} // Stop click event from bubbling up
+              onKeyDown={(e) => e.stopPropagation()} // Stop key events from bubbling up
               className={`w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
                 accessorySearchInputError
                   ? "border-red-500 focus:ring-red-500"
@@ -98,14 +112,18 @@ const Accesories = ({
           <div>
             <Button
               primary
+              type="submit"
               loading={getAccesoriesByNameResult.isLoading}
-              onClick={handleAccesoriesSearch}
+              onClick={(e) => {
+                e.stopPropagation(); // Stop event from bubbling up
+                handleAccesoriesSearch(e);
+              }}
               icon={<BiSearch />}
             >
               Buscar
             </Button>
           </div>
-        </div>
+        </form>
       </div>
       {getAccesoriesByNameResult.isLoading ? (
         <SkeletonText lines={6} className="mb-4" />
@@ -116,6 +134,7 @@ const Accesories = ({
           toggleItem={toggleSubItem}
           labelFieldKey="description"
           additionalFieldKey="reference"
+          multipleItems={false}
         />
       )}
     </div>

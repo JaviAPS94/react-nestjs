@@ -2,12 +2,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { SubDesign } from './sub-design.entity';
 import { DesignElement } from './design-element.entity';
+import { DesignSubType } from './design-subtype.entity';
 
 @Entity()
 export class Design {
@@ -25,6 +28,10 @@ export class Design {
 
   @OneToMany(() => DesignElement, (designElement) => designElement.design)
   designElements: DesignElement[];
+
+  @ManyToOne(() => DesignSubType, (designSubType) => designSubType.designs)
+  @JoinColumn({ name: 'design_subtype_id' })
+  designSubType: DesignSubType;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

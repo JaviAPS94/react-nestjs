@@ -21,6 +21,7 @@ interface Props<T> {
     searchTerm: string
   ) => Option<T>[] | undefined;
   disabled?: boolean;
+  className?: string;
 }
 
 const Select = <T,>({
@@ -33,6 +34,7 @@ const Select = <T,>({
   placeholder = "Selecciona una opción...",
   filterOptions = defaultFilterOptions,
   disabled = false,
+  className,
 }: Props<T>) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filteredOptions, setFilteredOptions] = useState<
@@ -93,16 +95,16 @@ const Select = <T,>({
   const handleClearSearch = () => {
     if (disabled) return;
     setSearchTerm("");
-    setIsDropdownOpen(true); // Open dropdown when cleared
+    onChange(undefined); // Clear selected value when search term is cleared
   };
+
+  const selectClassName = `flex items-center border rounded-md shadow-sm ${
+    disabled ? "bg-gray-200 cursor-not-allowed" : ""
+  } ${className}`;
 
   return (
     <div className="mt-4 relative">
-      <div
-        className={`flex items-center border rounded-md shadow-sm ${
-          disabled ? "bg-gray-200 cursor-not-allowed" : ""
-        }`}
-      >
+      <div className={selectClassName}>
         <input
           ref={inputRef}
           type="text"
@@ -122,7 +124,7 @@ const Select = <T,>({
           onFocus={handleInputFocus} // Open dropdown when input is clicked
           disabled={isLoading || disabled}
         />
-        {searchTerm && !disabled && (
+        {(searchTerm || selectedValue) && !disabled && (
           <MdOutlineClose
             className="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-800"
             onClick={handleClearSearch}

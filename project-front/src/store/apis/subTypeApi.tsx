@@ -13,8 +13,24 @@ const subTypeApi = createApi({
         method: "GET",
       }),
     }),
+    getSubTypeById: builder.query<SubType, number>({
+      query: (subTypeId: number) => ({
+        url: `/sub-type/${subTypeId}`,
+        method: "GET",
+      }),
+    }),
+    getAllSubTypes: builder.query<SubType[], void>({
+      query: () => ({
+        url: `/sub-type/all`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
-export const { useGetSubTypesWithFieldsByTypeQuery } = subTypeApi;
+export const {
+  useGetSubTypesWithFieldsByTypeQuery,
+  useGetSubTypeByIdQuery,
+  useGetAllSubTypesQuery,
+} = subTypeApi;
 export { subTypeApi };

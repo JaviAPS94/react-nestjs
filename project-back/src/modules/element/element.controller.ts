@@ -1,10 +1,18 @@
-import { Controller, Get, HttpException, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpException,
+  Post,
+  Query,
+  Body,
+} from '@nestjs/common';
 import { ElementService } from './services/element.service';
 import { ElementResponseDto } from './dtos/element.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SpecialItemOutputDto } from './dtos/special-item-output.dto';
 import { SpecialItemService } from './services/special-item.service';
 import { FiltersPaginatedDto } from './dtos/filters-paginated.dto';
+import { ElementsByIdsDto } from './dtos/elements-by-ids.dto';
 
 @ApiTags('Element')
 @Controller('element')
@@ -105,5 +113,55 @@ export class ElementController {
       specialItemOutputDto.description = specialItem.description;
       return specialItemOutputDto;
     });
+  }
+
+  @Post('/by-ids')
+  @ApiResponse({
+    status: 200,
+    description: 'The elements have been successfully retrieved.',
+    type: ElementResponseDto,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error.',
+  })
+  async getElementsByIds(
+    @Body() elementsByIdsDto: ElementsByIdsDto,
+  ): Promise<ElementResponseDto[]> {
+    try {
+      const elements = await this.elementService.getElementsByIds(
+        elementsByIdsDto.ids,
+      );
+
+      return elements.map((element) => {
+        const elementResponseDto = new ElementResponseDto();
+        elementResponseDto.id = element.id;
+        elementResponseDto.values = JSON.parse(element.values);
+        elementResponseDto.subType = {
+          id: element.subType.id,
+          name: element.subType.name,
+        };
+        elementResponseDto.sapReference = element.sapReference;
+        elementResponseDto.norm = {
+          id: element.norm.id,
+          name: element.norm.name,
+          version: element.norm.version,
+          country: {
+            id: element.norm.country.id,
+            name: element.norm.country.name,
+            isoCode: element.norm.country.isoCode,
+          },
+        };
+        return elementResponseDto;
+      });
+    } catch (error) {
+      console.error('Error in getElementsByIds:', error);
+      throw new HttpException(error.message, error?.getStatus() ?? 500);
+    }
   }
 }

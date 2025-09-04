@@ -82,4 +82,20 @@ export class ElementService {
       totalPages: Math.ceil(total / limit),
     };
   }
+
+  async getElementsByIds(ids: number[]): Promise<Element[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    const queryBuilder = this.dataSource
+      .getRepository(Element)
+      .createQueryBuilder('element')
+      .leftJoinAndSelect('element.norm', 'norm')
+      .leftJoinAndSelect('element.subType', 'subType')
+      .leftJoinAndSelect('norm.country', 'country')
+      .where('element.id IN (:...ids)', { ids });
+
+    return await queryBuilder.getMany();
+  }
 }
