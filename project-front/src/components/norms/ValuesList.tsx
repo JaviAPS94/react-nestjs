@@ -4,7 +4,8 @@ import { BiChevronDown, BiChevronUp } from "react-icons/bi";
 const ValuesList: React.FC<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   values: { [key: string]: any } | Record<string, any>[];
-}> = ({ values }) => {
+  setIsTooltipVisible: React.Dispatch<React.SetStateAction<boolean>>;
+}> = ({ values, setIsTooltipVisible }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const displayLimit = 3;
 
@@ -32,12 +33,24 @@ const ValuesList: React.FC<{
     ? values.length
     : Object.keys(values).length;
 
+  const handleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
+
   return (
-    <div>
+    <div
+      onMouseEnter={() => {
+        setIsTooltipVisible(false);
+      }}
+      onMouseLeave={() => {
+        setIsTooltipVisible(true);
+      }}
+    >
       <ul className="list-disc list-inside">{renderValues()}</ul>
       {totalCount > displayLimit && (
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={(e) => handleExpand(e)}
           className="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center"
         >
           {isExpanded ? (

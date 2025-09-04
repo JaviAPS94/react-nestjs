@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import Modal from "react-modal";
 import ElementForm from "./ElementForm";
-import { Country, ElementField, Type } from "../../commons/types";
+import { Country, ElementResponse, Type } from "../../commons/types";
 import { NormData, NormElement } from "../../pages/NewNormPage";
+import DataTable from "./DataTable";
 
 interface NormFormProps {
   countries: Country[] | undefined;
   types: Type[] | undefined;
   formData: NormData;
   setFormData: React.Dispatch<React.SetStateAction<NormData>>;
+  elementsByFilters: ElementResponse[] | undefined;
 }
 
 const NormForm = ({
@@ -16,19 +18,22 @@ const NormForm = ({
   types,
   formData,
   setFormData,
+  elementsByFilters,
 }: NormFormProps) => {
   const [selectedType, setSelectedType] = useState<string>("");
   const [showAddElement, setShowAddElement] = useState<boolean>(false);
-  const [typeModalIsOpen, setTypeModalIsOpen] = useState(false);
-  const [baseFields, setBaseFields] = useState<ElementField>();
+  const [baseFields, setBaseFields] =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    useState<Record<string, Record<string, any>>>();
   const [showAddElementButton, setShowAddElementButton] = useState(true);
+  const [typeModalIsOpen, setTypeModalIsOpen] = useState(false);
 
   const openTypeModal = () => setTypeModalIsOpen(true);
   const closeTypeModal = () => setTypeModalIsOpen(false);
 
   const handleShowAddElement = () => {
     setBaseFields(
-      types?.find((type) => type.id === Number(selectedType))?.field
+      types?.find((type) => type.id === Number(selectedType))?.field.base
     );
     setShowAddElement(true);
     setShowAddElementButton(false);
@@ -162,10 +167,18 @@ const NormForm = ({
 
       {showAddElement && baseFields && (
         <ElementForm
-          baseFields={baseFields}
+          baseFieldsValue={baseFields}
           handleAddElementToNorm={handleAddElementToNorm}
         />
       )}
+      <h2 className="mt-5 font-bold text-xl">Elementos que podrías cargar</h2>
+      <DataTable
+        data={elementsByFilters ?? []}
+        setBaseFields={setBaseFields}
+        setShowAddElement={setShowAddElement}
+        setShowAddElementButton={setShowAddElementButton}
+        setSelectedType={setSelectedType}
+      />
     </>
   );
 };

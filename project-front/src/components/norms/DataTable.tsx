@@ -5,7 +5,24 @@ import ValueModal from "./ValueModal";
 import { BiChevronLeft, BiChevronRight } from "react-icons/bi";
 import Tooltip from "../core/Tooltip";
 
-const DataTable: React.FC<{ data: ElementResponse[] }> = ({ data }) => {
+interface DataTableProps {
+  data: ElementResponse[];
+  setBaseFields: React.Dispatch<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    React.SetStateAction<Record<string, Record<string, any>> | undefined>
+  >;
+  setShowAddElement: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowAddElementButton: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelectedType: React.Dispatch<React.SetStateAction<string>>;
+}
+
+const DataTable = ({
+  data,
+  setBaseFields,
+  setShowAddElement,
+  setShowAddElementButton,
+  setSelectedType,
+}: DataTableProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedValues, setSelectedValues] = useState<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,8 +33,6 @@ const DataTable: React.FC<{ data: ElementResponse[] }> = ({ data }) => {
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const itemsPerPage = 5;
-  const tooltipDelay = 500;
-  let tooltipTimer: number | null = null;
 
   const openModal = (
     e: React.MouseEvent,
@@ -31,10 +46,8 @@ const DataTable: React.FC<{ data: ElementResponse[] }> = ({ data }) => {
 
   const handleMouseEnter = (e: React.MouseEvent, id: number) => {
     setHoveredRow(id);
-    tooltipTimer = setTimeout(() => {
-      setIsTooltipVisible(true);
-      setTooltipPosition({ x: e.clientX, y: e.clientY });
-    }, tooltipDelay);
+    setIsTooltipVisible(true);
+    setTooltipPosition({ x: e.clientX, y: e.clientY });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -46,9 +59,6 @@ const DataTable: React.FC<{ data: ElementResponse[] }> = ({ data }) => {
   const handleMouseLeave = () => {
     setHoveredRow(null);
     setIsTooltipVisible(false);
-    if (tooltipTimer) {
-      clearTimeout(tooltipTimer);
-    }
   };
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -60,7 +70,20 @@ const DataTable: React.FC<{ data: ElementResponse[] }> = ({ data }) => {
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   const handleRowClick = (id: number) => {
-    alert(`You clicked on row with ID: ${id}`);
+    setBaseFields({});
+    const currentElement = data.find((element) => element.id === id);
+    const transformedObject = currentElement?.values.reduce(
+      (acc, { key, name, value, type }) => {
+        acc[key] = { label: name, type };
+        if (value) acc[key].value = value;
+        return acc;
+      },
+      {} as Record<string, { label: string; type: string; value?: string }>
+    );
+    setSelectedType(currentElement?.type.id.toString() || "");
+    setBaseFields(transformedObject);
+    setShowAddElement(true);
+    setShowAddElementButton(false);
   };
 
   return (
@@ -100,15 +123,18 @@ const DataTable: React.FC<{ data: ElementResponse[] }> = ({ data }) => {
               >
                 <td className="px-6 py-4 whitespace-nowrap">{item.id}</td>
                 <td className="px-6 py-4">
-                  <ValuesList values={item.values} />
+                  <ValuesList
+                    values={item.values}
+                    setIsTooltipVisible={setIsTooltipVisible}
+                  />
                   <button
                     onClick={(e) => openModal(e, item.values)}
                     className="mt-2 text-sm text-blue-600 hover:text-blue-800"
                     onMouseEnter={() => {
-                      if (tooltipTimer) {
-                        clearTimeout(tooltipTimer);
-                      }
                       setIsTooltipVisible(false);
+                    }}
+                    onMouseLeave={() => {
+                      setIsTooltipVisible(true);
                     }}
                   >
                     Ver todos
@@ -182,7 +208,7 @@ const DataTable: React.FC<{ data: ElementResponse[] }> = ({ data }) => {
         onClose={() => setModalOpen(false)}
       />
       <Tooltip
-        text="Click for more information"
+        text="Presiona aquí para cargar este elemento"
         visible={isTooltipVisible}
         position={tooltipPosition}
       />

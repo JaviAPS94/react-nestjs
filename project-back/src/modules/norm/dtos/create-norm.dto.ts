@@ -45,7 +45,7 @@ export class ElementDto {
     required: true,
   })
   @IsNotEmpty()
-  values: Record<string, any>;
+  values: Record<string, any>[];
   @ApiProperty({
     example: 1,
     required: true,
