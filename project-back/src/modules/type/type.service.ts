@@ -11,6 +11,6 @@ export class TypeService {
   ) {}
 
   async findAllWithFields(): Promise<Type[]> {
-    return await this.typeRepository.find({ relations: ['field'] });
+    return await this.typeRepository.find();
   }
 }

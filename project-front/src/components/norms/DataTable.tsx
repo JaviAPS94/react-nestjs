@@ -4,6 +4,7 @@ import ValuesList from "./ValuesList";
 import ValueModal from "./ValueModal";
 import { BiChevronLeft, BiChevronRight } from "react-icons/bi";
 import Tooltip from "../core/Tooltip";
+import { useNorm } from "../../hooks/useNorm";
 
 interface DataTableProps {
   data: ElementResponse[];
@@ -11,17 +12,13 @@ interface DataTableProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     React.SetStateAction<Record<string, Record<string, any>> | undefined>
   >;
-  setShowAddElement: React.Dispatch<React.SetStateAction<boolean>>;
-  setShowAddElementButton: React.Dispatch<React.SetStateAction<boolean>>;
-  setSelectedType: React.Dispatch<React.SetStateAction<string>>;
+  setSelectedSubType: React.Dispatch<React.SetStateAction<number | undefined>>;
 }
 
 const DataTable = ({
   data,
   setBaseFields,
-  setShowAddElement,
-  setShowAddElementButton,
-  setSelectedType,
+  setSelectedSubType,
 }: DataTableProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedValues, setSelectedValues] = useState<
@@ -33,6 +30,7 @@ const DataTable = ({
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const itemsPerPage = 5;
+  const { toogleShowAddElement, toogleShowAddElementButton } = useNorm();
 
   const openModal = (
     e: React.MouseEvent,
@@ -69,6 +67,15 @@ const DataTable = ({
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
+  const deleteKey = (
+    obj: Record<string, unknown>,
+    keyToDelete: string
+  ): Record<string, unknown> => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { [keyToDelete]: _, ...rest } = obj; // Destructure to remove the key
+    return rest; // Return the updated object
+  };
+
   const handleRowClick = (id: number) => {
     setBaseFields({});
     const currentElement = data.find((element) => element.id === id);
@@ -80,10 +87,10 @@ const DataTable = ({
       },
       {} as Record<string, { label: string; type: string; value?: string }>
     );
-    setSelectedType(currentElement?.type.id.toString() || "");
-    setBaseFields(transformedObject);
-    setShowAddElement(true);
-    setShowAddElementButton(false);
+    setSelectedSubType(currentElement?.subType.id || 0);
+    setBaseFields(deleteKey(transformedObject!, "accesories"));
+    toogleShowAddElement();
+    toogleShowAddElementButton();
   };
 
   return (
@@ -99,7 +106,7 @@ const DataTable = ({
                 Valores
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Tipo
+                Sub Tipo
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Norma
@@ -141,7 +148,7 @@ const DataTable = ({
                   </button>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {item.type.name}
+                  {item.subType.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {item.norm.name} (v{item.norm.version})

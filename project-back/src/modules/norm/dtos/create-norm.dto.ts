@@ -4,10 +4,17 @@ import {
   ArrayMinSize,
   IsArray,
   IsNotEmpty,
+  IsOptional,
   ValidateNested,
 } from 'class-validator';
 
 export class CreateNormDto {
+  @ApiProperty({
+    example: 1234,
+    required: false,
+  })
+  @IsOptional()
+  id: number;
   @ApiProperty({
     example: 'Norma 123CRT',
     required: true,
@@ -41,6 +48,12 @@ export class CreateNormDto {
 
 export class ElementDto {
   @ApiProperty({
+    example: 1,
+    required: false,
+  })
+  @IsOptional()
+  id?: number | undefined;
+  @ApiProperty({
     example: { key: 'value' },
     required: true,
   })
@@ -51,5 +64,15 @@ export class ElementDto {
     required: true,
   })
   @IsNotEmpty()
-  type: number;
+  subType: number;
+  @ApiProperty({
+    example: 1,
+    required: true,
+  })
+  specialItem: number;
+  @ApiProperty({
+    example: '3-1000-13200-220-PR-Dyn5-ANSI-EC-P1',
+    required: true,
+  })
+  sapReference: string;
 }

@@ -35,10 +35,13 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-
 # temp directory
 .temp
 .tmp
+
+# Uploaded files
+/uploads/
+/uploads/*
 
 # Runtime data
 pids

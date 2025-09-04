@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ElementService } from '../../../src/modules/element/element.service';
+import { ElementService } from '../../../src/modules/element/services/element.service';
 import { DataSource } from 'typeorm';
 import { Element } from '../../../src/modules/element/entities/element.entity';
 

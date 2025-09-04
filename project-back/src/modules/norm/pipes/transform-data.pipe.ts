@@ -10,16 +10,24 @@ import { validate } from 'class-validator';
 
 @Injectable()
 export class TransformAndValidatePipe implements PipeTransform {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async transform(value: any, _metadata: ArgumentMetadata) {
     const elements = [];
 
     // Extracting elements
     let index = 0;
-    while (value[`elements[${index}].type`] !== undefined) {
+    while (value[`elements[${index}].subType`] !== undefined) {
       const element = {
-        type: parseInt(value[`elements[${index}].type`], 10),
+        id: undefined,
+        subType: parseInt(value[`elements[${index}].subType`], 10),
+        specialItem: parseInt(value[`elements[${index}].specialItem`], 10),
+        sapReference: value[`elements[${index}].sapReference`],
         values: [],
       };
+
+      if (value[`elements[${index}].id`]) {
+        element.id = parseInt(value[`elements[${index}].id`], 10);
+      }
 
       let valueIndex = 0;
       while (
@@ -47,6 +55,7 @@ export class TransformAndValidatePipe implements PipeTransform {
 
     // Transform form-data to CreateNormDto
     const transformedDto = plainToInstance(CreateNormDto, {
+      id: value.id,
       name: value.name,
       version: value.version,
       country: parseInt(value.country, 10), // Ensure country is a number

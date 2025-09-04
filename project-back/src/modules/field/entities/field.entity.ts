@@ -1,4 +1,4 @@
-import { Type } from '../../type/entities/type.entity';
+import { SubType } from '../..//subtype/entities/subtype.entity';
 import {
   Column,
   CreateDateColumn,
@@ -16,8 +16,8 @@ export class Field {
   @Column('nvarchar', { length: 'max' })
   base: string;
 
-  @OneToMany(() => Type, (type) => type.field)
-  types: Type[];
+  @OneToMany(() => SubType, (subType) => subType.field)
+  subTypes: SubType[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

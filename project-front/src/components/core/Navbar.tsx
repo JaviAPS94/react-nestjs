@@ -5,7 +5,7 @@ const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="bg-gray-800">
+    <nav className="bg-rymel-blue">
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-16">
           <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
@@ -55,33 +55,48 @@ const Navbar: React.FC = () => {
           </div>
           <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
             <div className="flex-shrink-0">
-              <h1 className="text-white text-lg font-bold">Logo</h1>
+              <img
+                className="h-12 w-auto"
+                src="https://rymel.com.co/wp-content/uploads/2024/07/Logo-Rymel-Oscuro.png"
+              />
             </div>
-            <div className="hidden sm:block sm:ml-6">
-              <div className="flex space-x-4">
+            <div className="hidden sm:block sm:w-full sm:ml-6">
+              <div className="flex justify-center items-center space-x-10 h-full">
                 <Link
                   to="/"
-                  className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-100 hover:bg-rymel-yellow hover:text-white px-3 py-2 rounded-md text-lg font-bold"
                 >
-                  NORMAS
+                  Normas
+                </Link>
+                <Link
+                  to="/design"
+                  className="text-gray-100 hover:bg-rymel-yellow hover:text-white px-3 py-2 rounded-md text-lg font-bold"
+                >
+                  Diseño
                 </Link>
                 <a
                   href="#"
-                  className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-100 hover:bg-rymel-yellow hover:text-white px-3 py-2 rounded-md text-lg font-bold"
                 >
-                  Elemento 2
+                  Módulo 3
                 </a>
                 <a
                   href="#"
-                  className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-100 hover:bg-rymel-yellow hover:text-white px-3 py-2 rounded-md text-lg font-bold"
                 >
-                  Elemento 2
+                  Módulo 4
                 </a>
                 <a
                   href="#"
-                  className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-100 hover:bg-rymel-yellow hover:text-white px-3 py-2 rounded-md text-lg font-bold"
                 >
-                  Elemento 3
+                  Módulo 5
+                </a>
+                <a
+                  href="#"
+                  className="text-gray-100 hover:bg-rymel-yellow hover:text-white px-3 py-2 rounded-md text-lg font-bold"
+                >
+                  Módulo 6
                 </a>
               </div>
             </div>
@@ -97,25 +112,25 @@ const Navbar: React.FC = () => {
               to="/"
               className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
             >
-              NORMAS
+              Normas
+            </Link>
+            <Link
+              to="/design"
+              className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+            >
+              Diseño
             </Link>
             <a
               href="#"
               className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
             >
-              About
+              Módulo 3
             </a>
             <a
               href="#"
               className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
             >
-              Services
-            </a>
-            <a
-              href="#"
-              className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-            >
-              Contact
+              Módulo 4
             </a>
           </div>
         </div>

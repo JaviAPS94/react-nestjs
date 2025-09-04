@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { BiChevronDown, BiChevronUp } from "react-icons/bi";
+import AccesoriesTable from "./AccesoriesTable";
+import { Accessory } from "./Accesories";
 
 const ValuesList: React.FC<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,7 +17,14 @@ const ValuesList: React.FC<{
         .slice(0, isExpanded ? values.length : displayLimit)
         .map((value, index) => (
           <li key={index} className="text-sm">
-            {value.name}: {value.value}
+            {value.name}:
+            {value.name == "Accesorios" ? (
+              <AccesoriesTable
+                accessories={JSON.parse(value.value) as Accessory[]}
+              />
+            ) : (
+              value.value
+            )}
           </li>
         ));
     } else {

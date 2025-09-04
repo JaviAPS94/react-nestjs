@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ElementController } from '../../../src/modules/element/element.controller';
-import { ElementService } from '../../../src/modules/element/element.service';
+import { ElementService } from '../../../src/modules/element/services/element.service';
 import { Element } from '../../../src/modules/element/entities/element.entity';
 import { ElementResponseDto } from '../../../src/modules/element/dtos/element.dto';
 import { Field } from '../../../src/modules/field/entities/field.entity';

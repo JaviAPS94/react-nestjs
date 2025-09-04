@@ -12,6 +12,25 @@ export class TypeDto {
   name: string;
 }
 
+export class SubTypeDto {
+  @ApiProperty({
+    example: 1,
+  })
+  id: number;
+  @ApiProperty({
+    example: 'tipo 1',
+  })
+  name: string;
+  @ApiProperty({
+    example: 'CVT',
+  })
+  code?: string;
+  @ApiProperty({
+    type: () => TypeDto,
+  })
+  type?: TypeDto;
+}
+
 export class ElementResponseDto {
   @ApiProperty({
     example: 1,
@@ -22,11 +41,15 @@ export class ElementResponseDto {
   })
   values: Record<string, any>;
   @ApiProperty({
-    type: () => TypeDto,
+    type: () => SubTypeDto,
   })
-  type: TypeDto;
+  subType: SubTypeDto;
   @ApiProperty({
     type: () => NormDto,
   })
   norm: NormDto;
+  @ApiProperty({
+    example: 'CVT',
+  })
+  sapReference?: string;
 }

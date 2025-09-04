@@ -1,7 +1,9 @@
 import { Route, Routes } from "react-router-dom";
 import NormListPage from "./pages/NormListPage";
 import Navbar from "./components/core/Navbar";
-import NewNormPage from "./pages/NewNormPage";
+import NormPage from "./pages/NormPage";
+import DesignPage from "./pages/DesignPage";
+import ElementsDesignPage from "./pages/ElementsDesignPage";
 
 const App: React.FC = () => {
   return (
@@ -9,7 +11,10 @@ const App: React.FC = () => {
       <Navbar />
       <Routes>
         <Route path="/" element={<NormListPage />} />
-        <Route path="/new-norm" element={<NewNormPage />} />
+        <Route path="/norms/new" element={<NormPage />} />
+        <Route path="/norms/edit/:normId" element={<NormPage />} />
+        <Route path="/design" element={<DesignPage />} />
+        <Route path="/elements/design" element={<ElementsDesignPage />} />
       </Routes>
     </>
   );

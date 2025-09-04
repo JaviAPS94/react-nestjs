@@ -9,4 +9,8 @@ export class CountryOutputDto {
     example: 'Colombia',
   })
   name: string;
+  @ApiProperty({
+    example: 'CO',
+  })
+  isoCode: string;
 }

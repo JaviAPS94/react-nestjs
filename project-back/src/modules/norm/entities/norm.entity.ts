@@ -10,6 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { NormSpecification } from './norm-specification.entity';
 
 @Entity()
 export class Norm {
@@ -22,9 +23,19 @@ export class Norm {
   @Column()
   version: string;
 
+  @Column({ nullable: true })
+  normFile: string;
+
   @ManyToOne(() => Country, (country) => country.norms)
   @JoinColumn({ name: 'country_id' })
   country: Country;
+
+  @ManyToOne(
+    () => NormSpecification,
+    (normSpecification) => normSpecification.norms,
+  )
+  @JoinColumn({ name: 'norm_specification_id' })
+  normSpecification: NormSpecification;
 
   @OneToMany(() => Element, (element) => element.norm)
   elements: Element[];

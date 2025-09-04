@@ -16,6 +16,9 @@ export class Country {
   @Column()
   name: string;
 
+  @Column()
+  isoCode: string;
+
   @OneToMany(() => Norm, (norm) => norm.country)
   norms: Norm[];
 

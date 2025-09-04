@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException } from '@nestjs/common';
 import { NormController } from '../../../src/modules/norm/norm.controller';
-import { NormService } from '../../../src/modules/norm/norm.service';
+import { NormService } from '../../../src/modules/norm/services/norm.service';
 import { CreateNormDto } from '../../../src/modules/norm/dtos/create-norm.dto';
 
 describe('NormController', () => {
